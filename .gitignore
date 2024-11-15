@@ -1,5 +1,5 @@
 # ADDED: sudoku solver script
-bin/solve_sudoku
+solve_sudoku
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
