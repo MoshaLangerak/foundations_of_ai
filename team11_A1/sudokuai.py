@@ -17,7 +17,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         super().__init__()
 
     def evaluate(self, game_state: GameState):
-        return None
+        return game_state.scores[0] - game_state.scores[1]
     
     def getChildren(self, game_state: GameState):
         return None
