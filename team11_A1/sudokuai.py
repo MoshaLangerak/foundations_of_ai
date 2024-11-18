@@ -23,7 +23,26 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return None
     
     def minimax(self, game_state: GameState, depth, maximizingPlayer):
-        return None
+        if depth == 0:
+            return self.evaluate(game_state)
+        
+        children = self.getChildren(game_state)
+
+        if children is None:
+            return self.evaluate(game_state)
+
+        if maximizingPlayer:
+            maxEval = -float('inf')
+            for child in children:
+                eval = self.minimax(child, depth-1, False)
+                maxEval = max(maxEval, eval)
+            return maxEval
+        else:
+            minEval = float('inf')
+            for child in children:
+                eval = self.minimax(child, depth-1, True)
+                minEval = min(minEval, eval)
+            return minEval
     
     def compute_best_move(self, game_state: GameState) -> None:
         return None
