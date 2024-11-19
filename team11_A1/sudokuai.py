@@ -4,6 +4,7 @@
 
 import random
 import time
+import copy
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 
@@ -29,11 +30,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         for square in valid_entries:
             for entry in valid_entries[square]:
                 move = Move(square, entry)
-                if game_state.is_valid_move(move):
-                    new_game_state = game_state.copy()
-                    new_game_state.apply_move(move)
-                    children.append(new_game_state)
-        
+                new_game_state = add_move_to_game_state(game_state, move)
+                children.append(new_game_state)
+    
         return children
     
     def minimax(self, game_state: GameState, depth, maximizingPlayer):
@@ -59,7 +58,38 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             return minEval
     
     def compute_best_move(self, game_state: GameState) -> None:
-        return None
+        # implementation based on naive_player, will propose moves with increasing depth
+        N = game_state.board.N
+
+        # Check whether a cell is empty, a value in that cell is not taboo, and that cell is allowed
+        def possible(i, j, value):
+            return game_state.board.get((i, j)) == SudokuBoard.empty \
+                   and not TabooMove((i, j), value) in game_state.taboo_moves \
+                       and (i, j) in game_state.player_squares()
+
+        all_moves = [Move((i, j), value) for i in range(N) for j in range(N)
+                     for value in range(1, N+1) if possible(i, j, value)]
+        
+        depth = 2
+
+        while True:
+            best_move = random.choice(all_moves)
+            best_score = -float('inf')
+            for move in all_moves:
+                new_game_state = add_move_to_game_state(game_state, move)
+
+                score = self.minimax(new_game_state, depth, False)
+                if score > best_score:
+                    best_score = score
+                    best_move = move
+            self.propose_move(best_move)
+            depth += 1
+    
+def add_move_to_game_state(game_state: GameState, move: Move):
+    new_game_state = copy.deepcopy(game_state)
+    new_game_state.board.put(move.square, move.value)
+    new_game_state.moves.append(move)
+    return new_game_state
     
 
 class ValidEntryFinder:
