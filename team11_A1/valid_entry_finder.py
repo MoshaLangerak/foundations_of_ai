@@ -7,14 +7,13 @@
 
 
 class ValidEntryFinder:
-    def __init__(self, board):
-        ...
+    def __init__(self):
+        pass
 
     def squares2values(self,squares : list, board) -> list:
         return [board.squares[board.square2index(sq)] for sq in squares]
 
     def get_pos_entries_row(self,allowed_squares,board,available_entries):
-
         dct = {}
         dct_pos_row_entries = {}
 
@@ -41,7 +40,6 @@ class ValidEntryFinder:
 
 
     def get_pos_entries_col(self,allowed_squares,board,available_entries):
-
         dct = {}
         dct_pos_col_entries = {}
 
@@ -66,7 +64,6 @@ class ValidEntryFinder:
 
 
     def get_block_coords(self,coordinate,board) -> list:
-
         # nr rows & cols of entire board
         nr_rows = board.m
         nr_cols = board.n
@@ -87,16 +84,13 @@ class ValidEntryFinder:
 
         return block_coords
 
-    def get_pos_entries_block(self,allowed_squares,board,available_entries):
-
-
+    def get_pos_entries_block(self, allowed_squares, board, available_entries):
         dct_blocks = {}
         dct_pos_block_entries = {}
         
         for square in allowed_squares:
             # check whether already computed
             if all(str(square) not in block for block in dct_blocks):
-
                 # get coordinates of the entire block in which the square is present
                 lst_block_coords = self.get_block_coords(square,board)
             
@@ -107,7 +101,6 @@ class ValidEntryFinder:
                 pos_block_entries = [val for val in available_entries if val not in block_values]
                 dct_pos_block_entries[square] = pos_block_entries
                 dct_blocks[str(lst_block_coords)] = pos_block_entries
-
             else:
                 # find correct key
                 key = next((key for key in dct_blocks if str(square) in key), None)
@@ -116,13 +109,12 @@ class ValidEntryFinder:
         return dct_pos_block_entries
 
 
-    def get_pos_entries_boards(self,allowed_squares,board):
+    def get_pos_entries_boards(self, allowed_squares, board):
+        available_entries = list(range(1, board.n*board.m+1))
 
-        available_entries = list(range(1,board.n*board.m+1))
-
-        dct_pos_entries_row = self.get_pos_entries_row(allowed_squares,board,available_entries)
-        dct_pos_entries_col = self.get_pos_entries_col(allowed_squares,board,available_entries)
-        dct_pos_entries_block = self.get_pos_entries_block(allowed_squares,board,available_entries)
+        dct_pos_entries_row = self.get_pos_entries_row(allowed_squares, board, available_entries)
+        dct_pos_entries_col = self.get_pos_entries_col(allowed_squares, board, available_entries)
+        dct_pos_entries_block = self.get_pos_entries_block(allowed_squares, board, available_entries)
 
         dct_pos_entries = {}
         for square in dct_pos_entries_row:
@@ -135,4 +127,4 @@ class ValidEntryFinder:
         return dct_pos_entries
 
 
-# ValidEntryFinder.get_pos_entries_boards(allowed_squares,board)
+# ValidEntryFinder.get_pos_entries_boards(allowed_squares, board)

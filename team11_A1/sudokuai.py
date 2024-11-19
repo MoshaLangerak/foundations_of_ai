@@ -6,6 +6,7 @@ import random
 import time
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
+from valid_entry_finder import ValidEntryFinder
 
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
@@ -20,7 +21,21 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return game_state.scores[0] - game_state.scores[1]
     
     def getChildren(self, game_state: GameState):
-        return None
+        valid_entries = ValidEntryFinder().get_pos_entries_boards(game_state.player_squares(), game_state.board)
+
+        if valid_entries is None:
+            return None
+        
+        children = []
+        for square in valid_entries:
+            for entry in valid_entries[square]:
+                move = Move(square, entry)
+                if game_state.is_valid_move(move):
+                    new_game_state = game_state.copy()
+                    new_game_state.apply_move(move)
+                    children.append(new_game_state)
+        
+        return children
     
     def minimax(self, game_state: GameState, depth, maximizingPlayer):
         if depth == 0:
