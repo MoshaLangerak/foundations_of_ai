@@ -59,16 +59,17 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     
     def compute_best_move(self, game_state: GameState) -> None:
         # implementation based on naive_player, will propose moves with increasing depth
-        N = game_state.board.N
+        valid_entries = ValidEntryFinder().get_pos_entries_boards(game_state.player_squares(), game_state.board)
 
-        # Check whether a cell is empty, a value in that cell is not taboo, and that cell is allowed
+        # Check whether a cell is empty, a value in that cell is not taboo, and that cell is allowed, this double checks some things
         def possible(i, j, value):
             return game_state.board.get((i, j)) == SudokuBoard.empty \
                    and not TabooMove((i, j), value) in game_state.taboo_moves \
                        and (i, j) in game_state.player_squares()
 
-        all_moves = [Move((i, j), value) for i in range(N) for j in range(N)
-                     for value in range(1, N+1) if possible(i, j, value)]
+        all_moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)] if possible(i, j, value)]
+
+        print(f'Number of possible moves: {len(all_moves)}')
         
         depth = 2
 
