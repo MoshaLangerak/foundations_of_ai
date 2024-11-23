@@ -21,7 +21,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return game_state.scores[0] - game_state.scores[1]
     
     def getChildren(self, game_state: GameState):
-        valid_entries = ValidEntryFinder().get_pos_entries_boards(game_state.player_squares(), game_state.board)
+        valid_entries = ValidEntryFinder(game_state).get_pos_entries()
 
         if valid_entries is None:
             return None
@@ -65,17 +65,17 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     
     def compute_best_move(self, game_state: GameState) -> None:
         # implementation based on naive_player, will propose moves with increasing depth
-        all_moves = ValidEntryFinder(game_state).get_pos_entries()
-
+        valid_entries = ValidEntryFinder(game_state).get_pos_entries()
+        
         # # Check whether a cell is empty, a value in that cell is not taboo, and that cell is allowed, this double checks some things
         # def possible(i, j, value):
         #     return game_state.board.get((i, j)) == SudokuBoard.empty \
         #            and not TabooMove((i, j), value) in game_state.taboo_moves \
         #                and (i, j) in game_state.player_squares()
-
-        # all_moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)] if possible(i, j, value)]
-
-        print(f'Number of possible moves: {len(all_moves)}')
+        
+        all_moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)]] # ! This could be moved into the entryfinder class
+        
+        print(f'Number of possible moves: {len(valid_entries)}')
         
         depth = 2
         alpha = -float('inf')
@@ -91,9 +91,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 if score > best_score:
                     best_score = score
                     best_move = move
+            print(f"{best_move=}")
             self.propose_move(best_move)
             depth += 1
-    
+        
+
 def add_move_to_game_state(game_state: GameState, move: Move):
     new_game_state = copy.deepcopy(game_state)
     new_game_state.board.put(move.square, move.value)
