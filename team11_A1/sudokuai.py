@@ -77,7 +77,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         print(f'Number of possible moves: {len(all_moves)}')
         
-        depth = 4
+        depth = 2
         alpha = -float('inf')
         beta = float('inf')
 
@@ -113,17 +113,9 @@ class ValidEntryFinder:
     def squares2values(self,squares : list, board) -> list:
         return [board.squares[board.square2index(sq)] for sq in squares]
 
-    def get_pos_entries_row(self, allowed_squares, board, available_entries, game_state=None):
+    def get_pos_entries_row(self, allowed_squares, board, available_entries):
         dct = {}
         dct_pos_row_entries = {}
-
-        # Get taboo moves for quick lookup if game_state exists
-        taboo_moves = {}
-        if game_state and game_state.taboo_moves:
-            for move in game_state.taboo_moves:
-                if move.square not in taboo_moves:
-                    taboo_moves[move.square] = set()
-                taboo_moves[move.square].add(move.value)
 
         # get possible entries per row present allowed_squares
         for square in allowed_squares:
