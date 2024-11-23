@@ -35,7 +35,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     
         return children
     
-    def minimax(self, game_state: GameState, depth, maximizingPlayer):
+    def minimax(self, game_state: GameState, depth, alpha, beta, maximizingPlayer):
         if depth == 0:
             return self.evaluate(game_state)
         
@@ -47,14 +47,20 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         if maximizingPlayer:
             maxEval = -float('inf')
             for child in children:
-                eval = self.minimax(child, depth-1, False)
+                eval = self.minimax(child, depth-1, alpha, beta, False)
                 maxEval = max(maxEval, eval)
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break
             return maxEval
         else:
             minEval = float('inf')
             for child in children:
-                eval = self.minimax(child, depth-1, True)
+                eval = self.minimax(child, depth-1, alpha, beta, True)
                 minEval = min(minEval, eval)
+                beta = min(beta, eval)
+                if beta <= alpha:
+                    break
             return minEval
     
     def compute_best_move(self, game_state: GameState) -> None:
@@ -71,7 +77,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         print(f'Number of possible moves: {len(all_moves)}')
         
-        depth = 2
+        depth = 4
+        alpha = -float('inf')
+        beta = float('inf')
 
         while True:
             best_move = random.choice(all_moves)
@@ -79,7 +87,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             for move in all_moves:
                 new_game_state = add_move_to_game_state(game_state, move)
 
-                score = self.minimax(new_game_state, depth, False)
+                score = self.minimax(new_game_state, depth, alpha, beta, True)
                 if score > best_score:
                     best_score = score
                     best_move = move
@@ -105,9 +113,17 @@ class ValidEntryFinder:
     def squares2values(self,squares : list, board) -> list:
         return [board.squares[board.square2index(sq)] for sq in squares]
 
-    def get_pos_entries_row(self,allowed_squares,board,available_entries):
+    def get_pos_entries_row(self, allowed_squares, board, available_entries, game_state=None):
         dct = {}
         dct_pos_row_entries = {}
+
+        # Get taboo moves for quick lookup if game_state exists
+        taboo_moves = {}
+        if game_state and game_state.taboo_moves:
+            for move in game_state.taboo_moves:
+                if move.square not in taboo_moves:
+                    taboo_moves[move.square] = set()
+                taboo_moves[move.square].add(move.value)
 
         # get possible entries per row present allowed_squares
         for square in allowed_squares:
