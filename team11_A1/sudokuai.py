@@ -65,15 +65,15 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     
     def compute_best_move(self, game_state: GameState) -> None:
         # implementation based on naive_player, will propose moves with increasing depth
-        valid_entries = ValidEntryFinder().get_pos_entries_boards(game_state.player_squares(), game_state.board)
+        all_moves = ValidEntryFinder(game_state).get_pos_entries()
 
-        # Check whether a cell is empty, a value in that cell is not taboo, and that cell is allowed, this double checks some things
-        def possible(i, j, value):
-            return game_state.board.get((i, j)) == SudokuBoard.empty \
-                   and not TabooMove((i, j), value) in game_state.taboo_moves \
-                       and (i, j) in game_state.player_squares()
+        # # Check whether a cell is empty, a value in that cell is not taboo, and that cell is allowed, this double checks some things
+        # def possible(i, j, value):
+        #     return game_state.board.get((i, j)) == SudokuBoard.empty \
+        #            and not TabooMove((i, j), value) in game_state.taboo_moves \
+        #                and (i, j) in game_state.player_squares()
 
-        all_moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)] if possible(i, j, value)]
+        # all_moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)] if possible(i, j, value)]
 
         print(f'Number of possible moves: {len(all_moves)}')
         
@@ -102,126 +102,156 @@ def add_move_to_game_state(game_state: GameState, move: Move):
     
 
 class ValidEntryFinder:
-    # TODO:
-    # - make sure the allowed squares do not include filled in squares
-    # - create valid __init__ (?)
-    # - add doc strings and improve readability
 
-    def __init__(self):
-        pass
+    def __init__(self,game_state: GameState):
+        """
+        Initialize attributes from the game_state object.
+        @param game_state: GameState object representing the current state of the Competitive Sudoku game.
+        """
+        # initialize game_state object attributes
+        self.board = game_state.board
+        self.taboo_moves = game_state.taboo_moves
 
-    def squares2values(self,squares : list, board) -> list:
-        return [board.squares[board.square2index(sq)] for sq in squares]
+        # get all occupied squares
+        self.occupied_squares = set(game_state.occupied_squares1) | set(game_state.occupied_squares2)
 
-    def get_pos_entries_row(self, allowed_squares, board, available_entries):
-        dct = {}
-        dct_pos_row_entries = {}
+        # get the allowed squares attributes for the correct player and exclude the occupied squares
+        self.allowed_squares = (
+            set(game_state.allowed_squares1) if game_state.current_player == 1 else set(game_state.allowed_squares2)
+        ) - self.occupied_squares
 
-        # get possible entries per row present allowed_squares
-        for square in allowed_squares:
-            # get row coordinate
-            row_coordinate = square[0]
-
-            # check whether possible entries were already computed
-            if row_coordinate not in dct:
-                # get indices of entire row with row coordinate row_coordinate
-                lst_row_coords = [(row_coordinate,i) for i in range(board.n*board.m)]
-
-                # get current values of all items in the row (excluding 0/. as they are not valid entry options)
-                row_values = self.squares2values(lst_row_coords,board)
-
-                # get possible values for the current square based on rows
-                dct[row_coordinate] = [val for val in available_entries if val not in row_values]
-            
-            # get the 
-            dct_pos_row_entries[square] = dct[row_coordinate]
-
-        return dct_pos_row_entries
+        # initialize board size # ! can maybe be optimized by using SudokuBoard class methods
+        self.size = self.board.n * self.board.m
+        self.n = self.board.n
+        self.m = self.board.m
 
 
-    def get_pos_entries_col(self,allowed_squares,board,available_entries):
-        dct = {}
-        dct_pos_col_entries = {}
-
-        # get possible entries per column present allowed_squares
-        for square in allowed_squares:
-            # get column coordinate
-            col_coordinate = square[1]
-
-            # check whether possible entries were already computed
-            if col_coordinate not in dct:
-                # get indices of entire column with column coordinate col_coordinate
-                lst_col_coords = [(i,col_coordinate) for i in range(board.n*board.m)]
-                # get current values of all items in the col (excluding 0/. as they are not valid entry options)
-                col_values = self.squares2values(lst_col_coords,board)
-                # get possible values for the current square based on columns
-                dct[col_coordinate] = [val for val in available_entries if val not in col_values]
-            
-            # get the possible values from the column coordinate
-            dct_pos_col_entries[square] = dct[col_coordinate]
-
-        return dct_pos_col_entries
+    def squares2values(self, squares: set) -> set:
+        """
+        Converts coordinates to values of entries in those coordinates.
+        @param squares: set of coordinates that have to be converted to their values.
+        @return: set of values that correspond to the set of coordinates given.
+        """
+        # return set(self.board.squares[self.board.square2index(sq)] for sq in squares) - {0}
+        return set(self.board.get(sq) for sq in squares) - {0}
 
 
-    def get_block_coords(self,coordinate,board) -> list:
-        # nr rows & cols of entire board
-        nr_rows = board.m
-        nr_cols = board.n
+    def get_row_dict(self) -> dict:
+        """
+        Find all numbers (excluding 0) that are present in each allowed row.
+        @return: dictionary with row numbers as keys and the numbers included in the corresponding rows as values
+        """
+        # get all unique row coordinates in allowed_squares
+        allowed_row_coordinates = set(square[0] for square in self.allowed_squares)
 
-        # nr cols & row per square
-        nr_rows_per_square = board.n
-        nr_cols_per_square = board.m
+        # fill dictionary with numbers per row
+        dct_row_nrs = {}
+        for row_coord in allowed_row_coordinates:
+            # get coords of entire row with row coordinate
+            row_coords = set((row_coord,i) for i in range(self.size))
 
-        # Identify the starting row and column of the square
-        start_row = (coordinate[0] // nr_rows) * nr_rows
-        start_col = (coordinate[1] // nr_cols) * nr_cols
+            # assign current values of all squares in the row to dictionary (excluding 0/. as they are not valid entry options)
+            dct_row_nrs[row_coord] = self.squares2values(row_coords)
 
-        block_coords = [
-            (r, c)
-            for r in range(start_row, start_row + nr_cols_per_square)
-            for c in range(start_col, start_col + nr_rows_per_square)
-        ]
+        return dct_row_nrs
+    
 
-        return block_coords
+    def get_col_dict(self) -> dict:
+        """
+        Find all numbers (excluding 0) that are present in each allowed column.
+        @return: dictionary with column numbers as keys and the numbers included in the corresponding columns as values.
+        """
+        # get all unique column coordinates in allowed_squares
+        allowed_col_coordinates = set(square[1] for square in self.allowed_squares)
 
-    def get_pos_entries_block(self, allowed_squares, board, available_entries):
-        dct_blocks = {}
-        dct_pos_block_entries = {}
+        # fill dictionary with numbers per column
+        dct_col_nrs = {}
+        for col_coord in allowed_col_coordinates:
+            # get coords of entire column with column coordinate
+            current_col_coords = set((i,col_coord) for i in range(self.size))
+
+            # assign current values of all squares in the column to dictionary (excluding 0/. as they are not valid entry options)
+            dct_col_nrs[col_coord] = self.squares2values(current_col_coords)
+
+        return dct_col_nrs
+    
+
+    def get_block_id(self, coordinate: tuple) -> int:
+        """
+        Get the identifier the block within which coordinate lies
+        @param coordinate: tuple of the format (row, column).
+        @return: identifier of the block within which coordinate lies as an integer
+        """
+        return (coordinate[0]//self.m) * self.m + (coordinate[1]//self.n)
         
-        for square in allowed_squares:
-            # check whether already computed
-            if all(str(square) not in block for block in dct_blocks):
-                # get coordinates of the entire block in which the square is present
-                lst_block_coords = self.get_block_coords(square,board)
-            
-                # get values inside these coordinates
-                block_values = self.squares2values(lst_block_coords,board)
+    def get_block_coordinates(self, block_id: int) -> set[tuple]: # ! set[tuple] used here, which is not as detailed in other functions
+        """
+        Find all coordinates of the block with block_id.
+        @param block_id: identifier of the block of which the coordinates should be found.
+        @return: set of all (n*m) coordinates inside the block with block_id.
+        """
+        # compute starting row and column of the block
+        block_row_start = (block_id // self.m) * self.m
+        block_col_start = (block_id % self.m) * self.n
 
-                # compute the possible entries
-                pos_block_entries = [val for val in available_entries if val not in block_values]
-                dct_pos_block_entries[square] = pos_block_entries
-                dct_blocks[str(lst_block_coords)] = pos_block_entries
-            else:
-                # find correct key
-                key = next((key for key in dct_blocks if str(square) in key), None)
-                dct_pos_block_entries[square] = dct_blocks[key]
+        # generate all coordinates within the block
+        coordinates = {
+            (row, col)
+            for row in range(block_row_start, block_row_start + self.m)
+            for col in range(block_col_start, block_col_start + self.n)
+        }
 
-        return dct_pos_block_entries
+        return coordinates
+    
+    def get_block_dict(self) -> dict:
+        """
+        Find all numbers (excluding 0) that are present in each allowed block.
+        @return: dictionary with block ids as keys and the numbers included in the corresponding blocks as values.
+        """
+        # get all unique block ids in allowed_squares
+        allowed_block_ids = set(self.get_block_id(square) for square in self.allowed_squares)
 
+        # fill dictionary with values per block
+        dct_block_nrs = {}
+        for block_id in allowed_block_ids:
+            # get coords of all squares in the block
+            current_block_coords = self.get_block_coordinates(block_id)
+            # assign current values of all squares in the block to dictionary (excluding 0/. as they are not valid entry options)
+            dct_block_nrs[block_id] = self.squares2values(current_block_coords)
+        
+        return dct_block_nrs
 
-    def get_pos_entries_boards(self, allowed_squares, board):
-        available_entries = list(range(1, board.n*board.m+1))
+        
+    def get_pos_entries(self) -> dict:
+        """
+        Find all possible entries for the allowed squares of the current player.
+        @return: dictionary with the allowed squares as keys and the possible entries in the corresponding squares as values.
+        """
 
-        dct_pos_entries_row = self.get_pos_entries_row(allowed_squares, board, available_entries)
-        dct_pos_entries_col = self.get_pos_entries_col(allowed_squares, board, available_entries)
-        dct_pos_entries_block = self.get_pos_entries_block(allowed_squares, board, available_entries)
+        # get the available entries based on the board seize
+        available_entries = set(range(1, self.size+1))
+        
+        # get dictionary for values in each row, column, and block
+        dct_row_numbers = self.get_row_dict()
+        dct_col_numbers = self.get_col_dict()
+        dct_block_numbers = self.get_block_dict()
 
+        # compute possible values for each (empty) square
         dct_pos_entries = {}
-        for square in dct_pos_entries_row:
-            set_row = set(dct_pos_entries_row[square])
-            set_col = set(dct_pos_entries_col[square])
-            set_block = set(dct_pos_entries_block[square])
+        for square in self.allowed_squares:
+            row_values = dct_row_numbers[square[0]]
+            col_values = dct_col_numbers[square[1]]
+            block_values = dct_block_numbers[self.get_block_id(square)]
 
-            dct_pos_entries[square] = set_row & set_col & set_block
+            # get the values that are not possible in the current square
+            present_values = row_values | col_values | block_values
+            
+            # compute possible entries
+            pos_entries = set(
+                entry for entry in (available_entries - present_values)
+                if TabooMove(square, entry) not in self.taboo_moves
+            )
 
+            dct_pos_entries[square] = pos_entries
+        
         return dct_pos_entries
