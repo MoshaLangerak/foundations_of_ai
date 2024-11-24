@@ -36,12 +36,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return children
     
     def minimax(self, game_state: GameState, depth, alpha, beta, maximizingPlayer):
-        if depth == 0:
-            return self.evaluate(game_state)
-        
         children = self.getChildren(game_state)
-
-        if children is None:
+        
+        if depth == 0 or children is None:
             return self.evaluate(game_state)
 
         if maximizingPlayer:
@@ -67,48 +64,44 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # implementation based on naive_player, will propose moves with increasing depth
         valid_entries = ValidEntryFinder(game_state).get_pos_entries()
 
-        print(valid_entries)
-        
-        print(game_state.player_squares())
-
-        # # Check whether a cell is empty, a value in that cell is not taboo, and that cell is allowed, this double checks some things
-        # def possible(i, j, value):
-        #     return game_state.board.get((i, j)) == SudokuBoard.empty \
-        #            and not TabooMove((i, j), value) in game_state.taboo_moves \
-        #                and (i, j) in game_state.player_squares()
-        
         all_moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)]] # ! This could be moved into the entryfinder class
 
         # first propose a random move to avoid errors
         best_move = random.choice(all_moves)
         self.propose_move(best_move)
 
-        depth = 2
+        depth = 3
         alpha = -float('inf')
         beta = float('inf')
         best_score = -float('inf')
 
-        while True:
-            for move in all_moves:
-                new_game_state = add_move_to_game_state(game_state, move)
-                score = self.minimax(new_game_state, depth, alpha, beta, True)
+        for move in all_moves:
+            new_game_state = add_move_to_game_state(game_state, move)
+            score = self.minimax(new_game_state, depth, alpha, beta, True)
+            print(f'Score for move {move.square} with value {move.value} is {score}')
 
-                if score > best_score:
-                    best_score = score
-                    best_move = move        
-                    print(f"Depth: {depth}, Best move: {best_move}, Best score: {best_score}")
-                    if best_score == float('inf'):
-                        print(
-                            "INFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
-                    self.propose_move(best_move)
-            
-            depth += 1
+            if score > best_score:
+                print(f'New best score: {score}')
+                best_score = score
+                best_move = move        
+                if best_score == float('inf'):
+                    print(
+                        "INFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+                self.propose_move(best_move)
         
+        print(f'Finished checking all moves, best move is {best_move.square} with value {best_move.value} and score {best_score}')
 
 def add_move_to_game_state(game_state: GameState, move: Move):
+    """
+    Adds a move to the game state and returns the new game state.
+    @param game_state: GameState object representing the current state of the Competitive Sudoku game.
+    @param move: Move object representing the move to be added to the game state.
+    @return: new GameState object with the move added to the game state.
+    """
     new_game_state = copy.deepcopy(game_state)
     new_game_state.board.put(move.square, move.value)
     new_game_state.moves.append(move)
+    new_game_state.current_player = 3 - new_game_state.current_player
     return new_game_state
     
 
