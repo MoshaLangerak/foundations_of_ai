@@ -79,27 +79,29 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         
         all_moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)]] # ! This could be moved into the entryfinder class
 
+        # first propose a random move to avoid errors
+        best_move = random.choice(all_moves)
+        self.propose_move(best_move)
+
         depth = 2
         alpha = -float('inf')
         beta = float('inf')
+        best_score = -float('inf')
 
         while True:
-            best_move = random.choice(all_moves)
-            best_score = -float('inf')
-
-            # first propose a random move to avoid errors
-            self.propose_move(best_move)
-
             for move in all_moves:
                 new_game_state = add_move_to_game_state(game_state, move)
-
                 score = self.minimax(new_game_state, depth, alpha, beta, True)
+
                 if score > best_score:
                     best_score = score
-                    best_move = move
-                    
-            print(f"Depth: {depth}, Best move: {best_move}, Best score: {best_score}")
-            self.propose_move(best_move)
+                    best_move = move        
+                    print(f"Depth: {depth}, Best move: {best_move}, Best score: {best_score}")
+                    if best_score == float('inf'):
+                        print(
+                            "INFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+                    self.propose_move(best_move)
+            
             depth += 1
         
 
