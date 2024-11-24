@@ -66,7 +66,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def compute_best_move(self, game_state: GameState) -> None:
         # implementation based on naive_player, will propose moves with increasing depth
         valid_entries = ValidEntryFinder(game_state).get_pos_entries()
+
+        print(valid_entries)
         
+        print(game_state.player_squares())
+
         # # Check whether a cell is empty, a value in that cell is not taboo, and that cell is allowed, this double checks some things
         # def possible(i, j, value):
         #     return game_state.board.get((i, j)) == SudokuBoard.empty \
@@ -74,9 +78,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         #                and (i, j) in game_state.player_squares()
         
         all_moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)]] # ! This could be moved into the entryfinder class
-        
-        print(f'Number of possible moves: {len(valid_entries)}')
-        
+
         depth = 2
         alpha = -float('inf')
         beta = float('inf')
@@ -84,6 +86,10 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         while True:
             best_move = random.choice(all_moves)
             best_score = -float('inf')
+
+            # first propose a random move to avoid errors
+            self.propose_move(best_move)
+
             for move in all_moves:
                 new_game_state = add_move_to_game_state(game_state, move)
 
@@ -91,7 +97,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 if score > best_score:
                     best_score = score
                     best_move = move
-            print(f"{best_move=}")
+                    
+            print(f"Depth: {depth}, Best move: {best_move}, Best score: {best_score}")
             self.propose_move(best_move)
             depth += 1
         
@@ -118,9 +125,10 @@ class ValidEntryFinder:
         self.occupied_squares = set(game_state.occupied_squares1) | set(game_state.occupied_squares2)
 
         # get the allowed squares attributes for the correct player and exclude the occupied squares
-        self.allowed_squares = (
-            set(game_state.allowed_squares1) if game_state.current_player == 1 else set(game_state.allowed_squares2)
-        ) - self.occupied_squares
+        # self.allowed_squares = (
+        #     set(game_state.allowed_squares1) if game_state.current_player == 1 else set(game_state.allowed_squares2)
+        # ) - self.occupied_squares
+        self.allowed_squares = set(game_state.player_squares()) - self.occupied_squares
 
         # initialize board size # ! can maybe be optimized by using SudokuBoard class methods
         self.size = self.board.n * self.board.m
