@@ -30,7 +30,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         for square in valid_entries:
             for entry in valid_entries[square]:
                 move = Move(square, entry)
-                new_game_state = add_move_to_game_state(game_state, move)
+                new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
                 children.append(new_game_state)
     
         return children
@@ -63,47 +63,113 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def compute_best_move(self, game_state: GameState) -> None:
         # implementation based on naive_player, will propose moves with increasing depth
         valid_entries = ValidEntryFinder(game_state).get_pos_entries()
-
         all_moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)]] # ! This could be moved into the entryfinder class
 
         # first propose a random move to avoid errors
-        best_move = random.choice(all_moves)
-        self.propose_move(best_move)
+        random_move = random.choice(all_moves)
+        self.propose_move(random_move)
 
-        depth = 3
-        alpha = -float('inf')
-        beta = float('inf')
-        best_score = -float('inf')
+        max_depth = 10
 
-        for move in all_moves:
-            new_game_state = add_move_to_game_state(game_state, move)
-            score = self.minimax(new_game_state, depth, alpha, beta, True)
-            print(f'Score for move {move.square} with value {move.value} is {score}')
+        for depth in range(1, max_depth + 1):
+            alpha = -float('inf')
+            beta = float('inf')
+            best_score = -float('inf')
+            current_best_move = None
 
-            if score > best_score:
-                print(f'New best score: {score}')
-                best_score = score
-                best_move = move        
-                if best_score == float('inf'):
-                    print(
-                        "INFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
-                self.propose_move(best_move)
+            print(f'Checking all moves with depth {depth}')
+
+            for move in all_moves:
+                print(f'Checking move {move.square} with value {move.value}')
+                new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
+                print(f'New game state scores: {new_game_state.scores}')
+                score = self.minimax(new_game_state, depth, alpha, beta, True)
+
+                if score > best_score:
+                    best_score = score
+                    current_best_move = move        
+                    if best_score == float('inf'):
+                        print(
+                            "INFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+                    self.propose_move(current_best_move)
+
+
+class GameStateManager():
+
+    def __init__(self) -> None:
+        pass
+
+    def add_move_to_game_state(self, game_state: GameState, move: Move):
+        """
+        Adds a move to the game state and returns the new game state.
+        @param game_state: GameState object representing the current state of the Competitive Sudoku game.
+        @param move: Move object representing the move to be added to the game state.
+        @return: new GameState object with the move added to the game state.
+        """
+        new_game_state = copy.deepcopy(game_state)
+        new_game_state.board.put(move.square, move.value)
+        new_game_state.moves.append(move)
+        new_game_state.current_player = 3 - new_game_state.current_player
+
+        number_of_completions = 0
+        if self.check_row_completions(game_state, move):
+            number_of_completions += 1
+        if self.check_col_completions(game_state, move):
+            number_of_completions += 1
+        if self.check_square_completions(game_state, move):
+            number_of_completions += 1
         
-        print(f'Finished checking all moves, best move is {best_move.square} with value {best_move.value} and score {best_score}')
+        scores_dict = {0: 0, 1: 1, 2: 3, 3: 7}
 
-def add_move_to_game_state(game_state: GameState, move: Move):
-    """
-    Adds a move to the game state and returns the new game state.
-    @param game_state: GameState object representing the current state of the Competitive Sudoku game.
-    @param move: Move object representing the move to be added to the game state.
-    @return: new GameState object with the move added to the game state.
-    """
-    new_game_state = copy.deepcopy(game_state)
-    new_game_state.board.put(move.square, move.value)
-    new_game_state.moves.append(move)
-    new_game_state.current_player = 3 - new_game_state.current_player
-    return new_game_state
-    
+        new_game_state.scores[game_state.current_player - 1] += scores_dict[number_of_completions]
+
+        return new_game_state
+
+    def check_row_completions(self, game_state: GameState, move: Move):
+        """
+        Check if a move completes a row.
+        @param game_state: GameState object representing the current state of the Competitive Sudoku game.
+        @param move: Move object representing the move to be added to the game state.
+        @return: True if the move completes a row, False otherwise.
+        """
+        row = move.square[0]
+        row_values = set(game_state.board.get((row, col)) for col in range(game_state.board.n * game_state.board.m) if game_state.board.get((row, col)) != 0)
+        available_entries = set(range(1, game_state.board.n * game_state.board.m + 1))
+        row_values.add(move.value)
+        return row_values == available_entries
+        
+
+    def check_col_completions(self, game_state: GameState, move: Move):
+        """
+        Check if a move completes a column.
+        @param game_state: GameState object representing the current state of the Competitive Sudoku game.
+        @param move: Move object representing the move to be added to the game state.
+        @return: True if the move completes a column, False otherwise.
+        """
+        col = move.square[1]
+        col_values = set(game_state.board.get((row, col)) for row in range(game_state.board.n * game_state.board.m) if game_state.board.get((row, col)) != 0)
+        available_entries = set(range(1, game_state.board.n * game_state.board.m + 1))
+        col_values.add(move.value)
+        return col_values == available_entries
+
+    def check_square_completions(self, game_state: GameState, move: Move):
+        """
+        Check if a move completes a square.
+        @param game_state: GameState object representing the current state of the Competitive Sudoku game.
+        @param move: Move object representing the move to be added to the game state.
+        @return: True if the move completes a square, False otherwise.
+        """
+        row = move.square[0] // game_state.board.m
+        col = move.square[1] // game_state.board.n
+        square_values = set(
+            game_state.board.get((row * game_state.board.m + i, col * game_state.board.n + j))
+            for i in range(game_state.board.m)
+            for j in range(game_state.board.n)
+            if game_state.board.get((row * game_state.board.m + i, col * game_state.board.n + j)) != 0
+        )
+        available_entries = set(range(1, game_state.board.n * game_state.board.m + 1))
+        square_values.add(move.value)
+        return square_values == available_entries
 
 class ValidEntryFinder:
 
