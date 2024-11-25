@@ -16,6 +16,20 @@
       "justMyCode": true
     },
     {
+      "name": "Greedy vs Team11 2x2",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/simulate_game.py",
+      "args": [
+        "--first=greedy_player",
+        "--second=team11_A1",
+        "--board=boards/empty-2x2.txt",
+        "--time=1.0"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "Test valid entries",
       "type": "debugpy",
       "request": "launch",
