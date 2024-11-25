@@ -38,7 +38,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def minimax(self, game_state: GameState, depth, alpha, beta, maximizingPlayer):
         children = self.getChildren(game_state)
         
-        if depth == 0 or children is None:
+        if depth == 0 or not children:
             return self.evaluate(game_state)
 
         if maximizingPlayer:
@@ -67,6 +67,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         valid_entries = ValidEntryFinder(game_state).get_pos_entries()
         all_moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)]] # ! This could be moved into the entryfinder class
 
+        is_maximizing = self.player_number == 1
+
         # first propose a random move to avoid errors
         random_move = random.choice(all_moves)
         self.propose_move(random_move)
@@ -88,7 +90,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             for move in all_moves:
                 print(f'Checking move {move.square} -> {move.value}')
                 new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
-                score = self.minimax(new_game_state, depth, alpha, beta, True)
+                score = self.minimax(new_game_state, depth, alpha, beta, is_maximizing)
 
                 print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}')
                 if score == float('inf') or score == float('-inf'):
