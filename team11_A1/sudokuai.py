@@ -71,6 +71,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         random_move = random.choice(all_moves)
         self.propose_move(random_move)
 
+        print("Played taboo moves: ", ", ".join(str(move)
+              for move in game_state.taboo_moves), "\n")
+
         max_depth = 10
 
         best_score = -float('inf')
@@ -88,8 +91,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 score = self.minimax(new_game_state, depth, alpha, beta, True)
 
                 print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}')
-                if score == float('inf'):
-                    print('INFFFFFFFFFFFFF')
+                if score == float('inf') or score == float('-inf'):
+                    print('INFFFFFFFFFFFFFFFFFFFFFF')
                 if score > best_score and not score == float('inf'):
                     best_score = score
                     current_best_move = move        
