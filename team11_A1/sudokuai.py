@@ -71,20 +71,21 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         max_depth = 10
 
+        best_score = -float('inf')
+        current_best_move = None
+
         for depth in range(1, max_depth + 1):
             alpha = -float('inf')
             beta = float('inf')
-            best_score = -float('inf')
-            current_best_move = None
-
+            
             print(f'Checking all moves with depth {depth}')
 
             for move in all_moves:
                 print(f'Checking move {move.square} with value {move.value}')
                 new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
-                print(f'New game state scores: {new_game_state.scores}')
                 score = self.minimax(new_game_state, depth, alpha, beta, True)
 
+                print(f'Score for move {move.square} with value {move.value} is {score}, best score is {best_score}')
                 if score > best_score:
                     best_score = score
                     current_best_move = move        
@@ -92,6 +93,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                         print(
                             "INFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
                     self.propose_move(current_best_move)
+                    print(f'Best move found: {current_best_move.square} with value {current_best_move.value} with score {best_score}')
 
 
 class GameStateManager():
