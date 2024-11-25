@@ -81,8 +81,8 @@
       "program": "${workspaceFolder}/tests/parallel_games.py",
       "args": [
         "--games=10",
-        "--second=greedy_player",
-        "--first=team11_A1",
+        "--first=greedy_player",
+        "--second=team11_A1",
         "--board=boards/empty-2x2.txt",
         "--time=1.0",
         "--games=100"
