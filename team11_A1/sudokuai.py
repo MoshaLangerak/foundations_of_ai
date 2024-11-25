@@ -69,6 +69,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         is_maximizing = self.player_number == 1
 
+        print(f'Player {self.player_number} is maximizing: {is_maximizing}')
+
         # first propose a random move to avoid errors
         random_move = random.choice(all_moves)
         self.propose_move(random_move)
@@ -78,10 +80,9 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         max_depth = 10
 
-        best_score = -float('inf')
-        current_best_move = None
-
         for depth in range(0, max_depth + 1):
+            best_score = -float('inf') if is_maximizing else float('inf')
+            current_best_move = None
             alpha = -float('inf')
             beta = float('inf')
             
@@ -95,11 +96,17 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}')
                 if score == float('inf') or score == float('-inf'):
                     print('INFFFFFFFFFFFFFFFFFFFFFF')
-                if score > best_score and not score == float('inf'):
-                    best_score = score
-                    current_best_move = move        
-                    self.propose_move(current_best_move)
-                    print(f'Best move found: {current_best_move.square} -> {current_best_move.value} with score {best_score}')
+                if is_maximizing:
+                    if score > best_score and not score == float('inf'):
+                        best_score = score
+                        current_best_move = move        
+                else:
+                    if score < best_score and not score == float('-inf'):
+                        best_score = score
+                        current_best_move = move
+            
+            self.propose_move(current_best_move)
+            print(f'Best move found: {current_best_move.square} -> {current_best_move.value} with score {best_score}')
 
 
 class GameStateManager():
