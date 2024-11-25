@@ -48,6 +48,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 maxEval = max(maxEval, eval)
                 alpha = max(alpha, eval)
                 if beta <= alpha:
+                    print('Pruning')
                     break
             return maxEval
         else:
@@ -57,6 +58,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 minEval = min(minEval, eval)
                 beta = min(beta, eval)
                 if beta <= alpha:
+                    print('Pruning')
                     break
             return minEval
     
@@ -74,26 +76,25 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         best_score = -float('inf')
         current_best_move = None
 
-        for depth in range(1, max_depth + 1):
+        for depth in range(0, max_depth + 1):
             alpha = -float('inf')
             beta = float('inf')
             
             print(f'Checking all moves with depth {depth}')
 
             for move in all_moves:
-                print(f'Checking move {move.square} with value {move.value}')
+                print(f'Checking move {move.square} -> {move.value}')
                 new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
                 score = self.minimax(new_game_state, depth, alpha, beta, True)
 
-                print(f'Score for move {move.square} with value {move.value} is {score}, best score is {best_score}')
-                if score > best_score:
+                print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}')
+                if score == float('inf'):
+                    print('INFFFFFFFFFFFFF')
+                if score > best_score and not score == float('inf'):
                     best_score = score
                     current_best_move = move        
-                    if best_score == float('inf'):
-                        print(
-                            "INFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
                     self.propose_move(current_best_move)
-                    print(f'Best move found: {current_best_move.square} with value {current_best_move.value} with score {best_score}')
+                    print(f'Best move found: {current_best_move.square} -> {current_best_move.value} with score {best_score}')
 
 
 class GameStateManager():
