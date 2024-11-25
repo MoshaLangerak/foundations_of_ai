@@ -75,14 +75,13 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         random_move = random.choice(all_moves)
         self.propose_move(random_move)
 
-        print("Played taboo moves: ", ", ".join(str(move)
-              for move in game_state.taboo_moves), "\n")
+        print("Played taboo moves: ", ", ".join(str(move) for move in game_state.taboo_moves), "\n")
 
         max_depth = 10
 
         for depth in range(0, max_depth + 1):
             best_score = -float('inf') if is_maximizing else float('inf')
-            current_best_move = None
+            best_move = None
             alpha = -float('inf')
             beta = float('inf')
             
@@ -94,19 +93,19 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 score = self.minimax(new_game_state, depth, alpha, beta, is_maximizing)
 
                 print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}')
-                if score == float('inf') or score == float('-inf'):
-                    print('INFFFFFFFFFFFFFFFFFFFFFF')
+
                 if is_maximizing:
                     if score > best_score and not score == float('inf'):
                         best_score = score
-                        current_best_move = move        
+                        best_move = move        
                 else:
                     if score < best_score and not score == float('-inf'):
                         best_score = score
-                        current_best_move = move
+                        best_move = move
             
-            self.propose_move(current_best_move)
-            print(f'Best move found: {current_best_move.square} -> {current_best_move.value} with score {best_score}')
+            # only propose a move when all moves of the current depth have been checked <-- this is a design choice
+            self.propose_move(best_move)
+            print(f'Best move found: {best_move.square} -> {best_move.value} with score {best_score}')
 
 
 class GameStateManager():
