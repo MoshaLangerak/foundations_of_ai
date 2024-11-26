@@ -85,6 +85,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             
             print(f'Checking all moves with depth {depth}')
 
+            # first update the score of the global best move for the current depth
+            if global_best_move is not None:
+                new_game_state = GameStateManager().add_move_to_game_state(game_state, global_best_move)
+                global_best_score = self.minimax(new_game_state, depth, alpha, beta, is_maximizing)
+                print(f'Global best move {global_best_move.square} -> {global_best_move.value} has score {global_best_score} at depth {depth}')
+
             for i, move in enumerate(all_moves):
                 print(f'Checking move {i}: {move.square} -> {move.value}')
                 new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
