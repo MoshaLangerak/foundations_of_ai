@@ -87,25 +87,30 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             
             print(f'Checking all moves with depth {depth}')
 
-            for move in all_moves:
-                print(f'Checking move {move.square} -> {move.value}')
+            for i, move in enumerate(all_moves):
+                print(f'Checking move {i}: {move.square} -> {move.value}')
                 new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
                 score = self.minimax(new_game_state, depth, alpha, beta, is_maximizing)
 
-                print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}')
+                if i == 0:
+                    print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score} (inf/-inf expected)')
+                else:
+                    print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}')
 
                 if is_maximizing:
                     if score > best_score and not score == float('inf'):
                         best_score = score
-                        best_move = move        
+                        best_move = move
+                        print(f'New best move: {best_move.square} -> {best_move.value} with score {best_score}')        
                 else:
                     if score < best_score and not score == float('-inf'):
                         best_score = score
                         best_move = move
+                        print(f'New best move: {best_move.square} -> {best_move.value} with score {best_score}')
             
             # only propose a move when all moves of the current depth have been checked <-- this is a design choice
             self.propose_move(best_move)
-            print(f'Best move found: {best_move.square} -> {best_move.value} with score {best_score}')
+            print(f'Best move proposed: {best_move.square} -> {best_move.value} with score {best_score}')
 
 
 class GameStateManager():
