@@ -71,12 +71,13 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         print(f'Player {self.player_number} is maximizing: {is_maximizing}')
 
-        # first propose a random move to avoid errors
-        random_move = random.choice(all_moves)
-        self.propose_move(random_move)
+        # first propose a random move to avoid losing the game
+        # random_move = random.choice(all_moves)
+        # self.propose_move(random_move)
 
         print("Played taboo moves: ", ", ".join(str(move) for move in game_state.taboo_moves), "\n")
 
+        # set the maximum depth for iterative deepening
         max_depth = 10
 
         for depth in range(0, max_depth + 1):
@@ -101,12 +102,20 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     if score > best_score and not score == float('inf'):
                         best_score = score
                         best_move = move
-                        print(f'New best move: {best_move.square} -> {best_move.value} with score {best_score}')        
+                        print(f'New best move: {best_move.square} -> {best_move.value} with score {best_score}')
+
+                        # if depth is 0, we can propose the move immediately
+                        if depth == 0:
+                            self.propose_move(best_move)
                 else:
                     if score < best_score and not score == float('-inf'):
                         best_score = score
                         best_move = move
                         print(f'New best move: {best_move.square} -> {best_move.value} with score {best_score}')
+
+                        # if depth is 0, we can propose the move immediately
+                        if depth == 0:
+                            self.propose_move(best_move)
             
             # only propose a move when all moves of the current depth have been checked <-- this is a design choice
             self.propose_move(best_move)
