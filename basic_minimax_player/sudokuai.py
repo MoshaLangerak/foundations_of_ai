@@ -61,39 +61,26 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         is_maximizing = self.player_number == 1
 
-        print("Played taboo moves: ", ", ".join(str(move) for move in game_state.taboo_moves), "\n")
-
-        # set the depth
-        depth = 1
+        # set the depth --> depth 1 works for time=0.5, depth=2 works for time=1.0
+        depth = 2
 
         best_score = -float('inf') if is_maximizing else float('inf')
         best_move = None
-        
-        print(f'Checking all moves with depth {depth}')
 
         for i, move in enumerate(all_moves):
-            print(f'Checking move {i}: {move.square} -> {move.value}')
             new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
             score = self.minimax(new_game_state, depth, is_maximizing)
-
-            if i == 0:
-                print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score} (inf/-inf expected)')
-            else:
-                print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}')
 
             if is_maximizing:
                 if score > best_score and not score == float('inf'):
                     best_score = score
                     best_move = move
                     self.propose_move(best_move)
-                    print(f'New best move proposed: {best_move.square} -> {best_move.value} with score {best_score}')
             else:
                 if score < best_score and not score == float('-inf'):
                     best_score = score
                     best_move = move
                     self.propose_move(best_move)
-                    print(f'New best move proposed: {best_move.square} -> {best_move.value} with score {best_score}')
-
 
 class GameStateManager():
 
