@@ -96,10 +96,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
                 score = self.minimax(new_game_state, depth, alpha, beta, is_maximizing)
 
-                if i == 0:
-                    print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score} (inf/-inf expected)')
-                else:
-                    print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}')
+                print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}{" (inf/-inf expected)" if i == 0 else ""}')
 
                 if is_maximizing:
                     if score > best_score and not score == float('inf'):
