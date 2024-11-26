@@ -24,22 +24,6 @@ SUDOKU_SOLVER = 'bin\\solve_sudoku.exe' if platform.system() == 'Windows' else '
 GameResult = Tuple[float, float]
 
 
-def check_oracle() -> None:
-    board_text = '''2 2
-       1   2   3   4
-       3   4   .   2
-       2   1   .   3
-       .   .   .   1
-    '''
-    output = solve_sudoku(SUDOKU_SOLVER, board_text)
-    result = 'has a solution' in output
-    if result:
-        print('The sudoku_solve program works.')
-    else:
-        print('The sudoku_solve program gives unexpected results.')
-        print(output)
-
-
 def warmup_players(player1: SudokuAI, player2: SudokuAI, calculation_time: float = 2.0) -> None:
     initial_board = SudokuBoard(3, 3)
     game_state = GameState(initial_board, copy.deepcopy(initial_board))
@@ -256,7 +240,6 @@ def main():
     cmdline_parser.add_argument('--first', help="the module name of the first player's SudokuAI class", default='team11_A1')
     cmdline_parser.add_argument('--second', help="the module name of the second player's SudokuAI class", default='greedy_player')
     cmdline_parser.add_argument('--time', help="the time (in seconds) for computing a move (default: 0.5)", type=float, default=0.5)
-    cmdline_parser.add_argument('--check', help="check if the solve_sudoku program works", action='store_true')
     cmdline_parser.add_argument('--board', metavar='FILE', type=str, help='a text file containing a game state')
     cmdline_parser.add_argument('--quiet', help='print minimal output', action='store_true')
     cmdline_parser.add_argument('--warm-up', help='let the engines play a move before the start of the game', action='store_true')
@@ -267,25 +250,23 @@ def main():
 
     SudokuSettings.print_ascii_states = args.ascii
 
-    if args.check:
-        check_oracle()
-    else:
-        results = []
-        for i in range(args.games):
-            print(f'Game {i+1}')
-            result_player_1, result_player_2, reason, score_player_1, score_player_2 = play_game(args.board, args.first, args.second, args.time, verbose = not args.quiet, warmup=args.warm_up, playmode=args.playmode)
-            
-            results.append((result_player_1, result_player_2, reason, score_player_1, score_player_2))
+    results = []
+    for i in range(args.games):
+        print(f'Game {i+1}')
+        result_player_1, result_player_2, reason, score_player_1, score_player_2 = play_game(args.board, args.first, args.second, args.time, verbose = not args.quiet, warmup=args.warm_up, playmode=args.playmode)
         
-        print('Results summary:')
-        print('Player 1 wins:', sum(result[0] for result in results if result[0] == 1))
-        print('Player 2 wins:', sum(result[1] for result in results if result[1] == 1))
-        print('Draws:', sum(result[0] == result[1] for result in results))
-        print('Reasons:')
-        reasons = [result[2] for result in results]
-        print({reason: reasons.count(reason) for reason in set(reasons)})
-        print('Scores:')
-        print([result[3:] for result in results])
+        results.append((result_player_1, result_player_2, reason, score_player_1, score_player_2))
+    
+    print('-----------------------------')
+    print('Results summary:')
+    print('Player 1 wins:', sum(result[0] for result in results if result[0] == 1))
+    print('Player 2 wins:', sum(result[1] for result in results if result[1] == 1))
+    print('Draws:', sum(result[0] == result[1] for result in results))
+    print('Reasons:')
+    reasons = [result[2] for result in results]
+    print({reason: reasons.count(reason) for reason in set(reasons)})
+    print('Scores:')
+    print([result[3:] for result in results])
 
 
 if __name__ == '__main__':

@@ -78,12 +78,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         global_best_score = -float('inf') if is_maximizing else float('inf')
 
         for depth in range(0, max_depth + 1):
+            print(f'-------- Checking depth {depth} --------')
+
             best_score = -float('inf') if is_maximizing else float('inf')
             best_move = None
             alpha = -float('inf')
             beta = float('inf')
-            
-            print(f'Checking all moves with depth {depth}')
 
             # first update the score of the global best move for the current depth
             if global_best_move is not None:
