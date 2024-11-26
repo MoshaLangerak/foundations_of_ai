@@ -93,6 +93,46 @@
       "env": {
         "PYTHONPATH": "${workspaceFolder}"
       }
-    }
+    },
+    {
+      "name": "10x Team11 vs Greedy 2x2 (sequential)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/tests/multiple_games.py",
+      "args": [
+        "--games=10",
+        "--first=team11_A1",
+        "--second=greedy_player",
+        "--board=boards/empty-2x2.txt",
+        "--time=1.0",
+        "--quiet"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "10x Team11 vs Greedy 2x3 (sequential)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/tests/multiple_games.py",
+      "args": [
+        "--games=10",
+        "--first=team11_A1",
+        "--second=greedy_player",
+        "--board=boards/empty-2x3.txt",
+        "--time=1.0",
+        "--quiet"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
   ]
 }

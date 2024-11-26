@@ -262,7 +262,7 @@ def main():
     cmdline_parser.add_argument('--warm-up', help='let the engines play a move before the start of the game', action='store_true')
     cmdline_parser.add_argument('--playmode', type=str, choices=['classic', 'rows', 'border', 'random'], default='rows', help='Choose the playing mode (classic, rows, border, random). Defaults to rows.')
     cmdline_parser.add_argument('--ascii', help=argparse.SUPPRESS, action='store_true')
-    cmdline_parser.add_argument('--number_of_games', help=argparse.SUPPRESS, type=int, default=10)
+    cmdline_parser.add_argument('--games', help=argparse.SUPPRESS, type=int, default=10)
     args = cmdline_parser.parse_args()
 
     SudokuSettings.print_ascii_states = args.ascii
@@ -271,15 +271,15 @@ def main():
         check_oracle()
     else:
         results = []
-        for i in range(args.number_of_games):
+        for i in range(args.games):
             print(f'Game {i+1}')
             result_player_1, result_player_2, reason, score_player_1, score_player_2 = play_game(args.board, args.first, args.second, args.time, verbose = not args.quiet, warmup=args.warm_up, playmode=args.playmode)
             
             results.append((result_player_1, result_player_2, reason, score_player_1, score_player_2))
         
         print('Results summary:')
-        print('Player 1 wins:', sum(result[0] for result in results if result == 1))
-        print('Player 2 wins:', sum(result[1] for result in results if result == 1))
+        print('Player 1 wins:', sum(result[0] for result in results if result[0] == 1))
+        print('Player 2 wins:', sum(result[1] for result in results if result[1] == 1))
         print('Draws:', sum(result[0] == result[1] for result in results))
         print('Reasons:')
         reasons = [result[2] for result in results]
