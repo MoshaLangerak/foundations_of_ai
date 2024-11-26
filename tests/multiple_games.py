@@ -169,7 +169,7 @@ def simulate_game(game_state: GameState,
                             raise RuntimeError(f'Unexpected output of sudoku solver: "{output}".')
                 else:
                     print(f'No move was supplied. Player {3-player_number} wins the game.')
-                    return (0, 1) if player_number == 1 else (1, 0)
+                    return (0, 1, 'No move supplied', 0, 0) if player_number == 1 else (1, 0, 'No move supplied', 0, 0)
             game_state.scores[player_number-1] = game_state.scores[player_number-1] + player_score
             game_state.current_player = 3 - game_state.current_player
             log(f'Reward: {player_score}')
@@ -259,6 +259,7 @@ def main():
     
     print('-----------------------------')
     print('Results summary:')
+    print(f'Settings: first={args.first}, second={args.second}, time={args.time}, board={args.board}, games={args.games}')
     print('Player 1 wins:', sum(result[0] for result in results if result[0] == 1))
     print('Player 2 wins:', sum(result[1] for result in results if result[1] == 1))
     print('Draws:', sum(result[0] == result[1] for result in results))
