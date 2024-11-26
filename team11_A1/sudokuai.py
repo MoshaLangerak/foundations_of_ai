@@ -74,6 +74,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         # set the maximum depth for iterative deepening
         max_depth = 10
+        global_best_move = None
+        global_best_score = -float('inf') if is_maximizing else float('inf')
 
         for depth in range(0, max_depth + 1):
             best_score = -float('inf') if is_maximizing else float('inf')
@@ -102,6 +104,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                         # if depth is 0, we can propose the move immediately
                         if depth == 0:
                             self.propose_move(best_move)
+                        
+                        # if the score is better than the global best score (could be from a previous depth), update the global best move
+                        if best_score > global_best_score:
+                            global_best_score = best_score
+                            global_best_move = best_move
+                            print(f'Move is also global best move: {global_best_move.square} -> {global_best_move.value} with score {global_best_score}')
                 else:
                     if score < best_score and not score == float('-inf'):
                         best_score = score
@@ -111,9 +119,17 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                         # if depth is 0, we can propose the move immediately
                         if depth == 0:
                             self.propose_move(best_move)
+                        
+                        # if the score is better than the global best score (could be from a previous depth), update the global best move
+                        if best_score > global_best_score:
+                            global_best_score = best_score
+                            global_best_move = best_move
+                            print(f'Move is also global best move: {global_best_move.square} -> {global_best_move.value} with score {global_best_score}')
             
             # only propose a move when all moves of the current depth have been checked <-- this is a design choice
             self.propose_move(best_move)
+            global_best_move = best_move
+            global_best_score = best_score
             print(f'Best move proposed: {best_move.square} -> {best_move.value} with score {best_score}')
 
 
