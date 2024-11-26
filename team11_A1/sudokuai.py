@@ -70,11 +70,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         is_maximizing = self.player_number == 1
 
         print(f'Player {self.player_number} is maximizing: {is_maximizing}')
-
-        # first propose a random move to avoid losing the game
-        # random_move = random.choice(all_moves)
-        # self.propose_move(random_move)
-
         print("Played taboo moves: ", ", ".join(str(move) for move in game_state.taboo_moves), "\n")
 
         # set the maximum depth for iterative deepening
