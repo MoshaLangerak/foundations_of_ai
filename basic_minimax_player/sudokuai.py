@@ -64,7 +64,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         print("Played taboo moves: ", ", ".join(str(move) for move in game_state.taboo_moves), "\n")
 
         # set the depth
-        depth = 2
+        depth = 1
 
         best_score = -float('inf') if is_maximizing else float('inf')
         best_move = None
