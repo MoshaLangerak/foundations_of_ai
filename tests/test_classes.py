@@ -16,28 +16,22 @@ class TabooMove:
         self.square = square
         self.value = value
 
-    def __eq__(self, other):
-        if not isinstance(other, TabooMove):
-            return False
-        return (self.square == other.square and
-                self.value == other.value)
-
-    def __hash__(self):
-        return hash((self.square, self.value))
-
-    def __repr__(self):
-        return f"TabooMove(square={self.square}, value={self.value})"
-
 
 class GameState:
     def __init__(self, board, taboo_moves):
         self.board = board
-        self.taboo_moves = taboo_moves
+        self.taboo_moves = list(taboo_moves)
         self.occupied_squares1 = []
         self.occupied_squares2 = []
         self._player_squares = []
         self.scores = [0, 0]
         self.current_player = 1
+
+        # Initialize occupied squares based on board state
+        for i in range(board.n * board.m):
+            for j in range(board.n * board.m):
+                if board.get((i, j)) != 0:
+                    self.occupied_squares1.append((i, j))
 
     def player_squares(self):
         return self._player_squares
