@@ -30,6 +30,20 @@
       "justMyCode": true
     },
     {
+      "name": "Greedy vs Team11 2x3",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/simulate_game.py",
+      "args": [
+        "--first=greedy_player",
+        "--second=team11_A1",
+        "--board=boards/empty-2x3.txt",
+        "--time=1.0"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "Greedy vs Team11 3x3",
       "type": "debugpy",
       "request": "launch",
@@ -44,7 +58,7 @@
       "justMyCode": true
     },
     {
-      "name": "Test valid entries",
+      "name": "Unit tests valid entries",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/tests/test_valid_entries.py",
@@ -153,6 +167,6 @@
       "env": {
         "PYTHONPATH": "${workspaceFolder}"
       }
-    },
+    }
   ]
 }

@@ -32,11 +32,55 @@ def create_test_board_2x2():
         (1, 1): {4},
         (1, 3): {1},
         (2, 2): {1},
-        (2, 3): {3},  # also 1 but 1 is taboo
+        (2, 3): {3},  # also 1 but taboo
         (3, 1): {3}
     }
 
     return game_state, "2x2 Board Test", expected_results
+
+
+def create_test_board_2x3():
+    board = SudokuBoard(2, 3)
+
+    values = [
+        [5, 1, 6, 4, 2, 3],
+        [4, 3, 2, 1, 6, 5],
+        [3, 2, 1, 5, 4, 0],
+        [6, 5, 4, 0, 1, 0],
+        [1, 6, 5, 2, 3, 4],
+        [0, 4, 0, 0, 5, 1]
+    ]
+
+    for i in range(6):
+        for j in range(6):
+            if values[i][j] != 0:
+                board.put((i, j), values[i][j])
+
+    taboo_moves = [TabooMove((2, 2), 3), TabooMove(
+        (2, 3), 3), TabooMove((3, 0), 3), TabooMove((5, 3), 3)]
+
+    game_state = GameState(board, taboo_moves)
+
+    # Squares where moves are allowed
+    game_state._player_squares = [(5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5)]
+
+    game_state.current_player = 2
+    game_state.occupied_squares1 = [(0, 0), (0, 1), (0, 3), (0, 4), (0, 5), (
+        1, 0), (1, 1), (1, 4), (1, 5), (2, 0), (2, 1), (2, 2), (2, 3), (3, 2)]
+    game_state.occupied_squares2 = [(0, 2), (1, 2), (1, 3), (2, 4), (3, 0), (3, 1), (
+        3, 4), (4, 0), (4, 1), (4, 2), (4, 3), (4, 4), (4, 5), (5, 1), (5, 4), (5, 5)]
+
+    # Expected valid entries for each allowed position
+    expected_results = {
+        (5, 0): {2},
+        (5, 3): {6}, # also 3 but taboo
+        (5, 2): {3},
+        (3, 3): {3},
+        (3, 5): {2},
+        (2, 5): {6}
+    }
+
+    return game_state, "2x3 Board Test", expected_results
 
 
 def run_tests(test_boards):
