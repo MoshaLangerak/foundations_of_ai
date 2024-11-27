@@ -118,7 +118,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                         print(f'New best move: {best_move.square} -> {best_move.value} with score {best_score}')
                         
                         # if the score is better than the global best score (could be from a previous depth), update the global best move
-                        if best_score > global_best_score:
+                        if best_score < global_best_score:
                             global_best_score = best_score
                             global_best_move = best_move
                             self.propose_move(global_best_move)
