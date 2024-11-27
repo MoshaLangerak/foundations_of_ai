@@ -358,6 +358,15 @@ class ValidEntryFinder:
 
             # get the values that are not possible in the current square
             present_values = row_values | col_values | block_values
+
+            if square == (2, 3):
+                print("Checking taboo moves for square (2,3):")
+                print(
+                    f"Available entries before taboo check: {available_entries - present_values}")
+                print(f"Taboo moves: {self.taboo_moves}")
+                print(
+                    f"Testing TabooMove((2,3), 1) in taboo_moves: {TabooMove((2,3), 1) in self.taboo_moves}")
+
             
             # compute possible entries
             pos_entries = set(
