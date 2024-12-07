@@ -2,15 +2,19 @@
 #  Software License, (See accompanying file LICENSE or copy at
 #  https://www.gnu.org/licenses/gpl-3.0.txt)
 
-import random
-import time
-import copy
-from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
+# import random
+# import time
+# import copy
+# from competitive_sudoku.sudoku import TabooMove
+from competitive_sudoku.sudoku import GameState, Move, SudokuBoard
 import competitive_sudoku.sudokuai
-
 from team11_A2.game_state_manager import GameStateManager
 from team11_A2.valid_entry_finder import ValidEntryFinder
 
+# GAME STATE
+EARLY = "early"
+MIDDLE = "middle"
+LATE = "late"
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     """
@@ -133,3 +137,22 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             global_best_score = best_score
             print(f'Best move proposed: {best_move.square} -> {best_move.value} with score {best_score}')
 
+
+def get_game_stage(board: SudokuBoard) -> str:
+    """
+    Determine the current game stage based on board fill percentage.
+    Args:
+        board: The SudokuBoard object
+    Returns: 'early', 'middle', or 'late'
+    """
+    filled_cells = sum(1 for i in range(board.N)
+                       for j in range(board.N)
+                       if board.get((i, j)) != board.empty)
+
+    fill_percentage = filled_cells / (board.N * board.N)
+
+    if fill_percentage < 0.33:
+        return EARLY
+    elif fill_percentage > 0.67:
+        return LATE
+    return MIDDLE
