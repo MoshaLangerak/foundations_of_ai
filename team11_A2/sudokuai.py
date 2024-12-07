@@ -8,6 +8,11 @@ import copy
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
 import competitive_sudoku.sudokuai
 
+# GAME STATE
+EARLY = "early"
+MIDDLE = "middle"
+LATE = "late"
+
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     """
     Sudoku AI that computes a move for a given sudoku configuration.
@@ -133,7 +138,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             global_best_move = best_move
             global_best_score = best_score
             print(f'Best move proposed: {best_move.square} -> {best_move.value} with score {best_score}')
-
 
 class GameStateManager():
 
@@ -377,4 +381,21 @@ class ValidEntryFinder:
         
         return dct_pos_entries
 
+def get_game_stage(board: SudokuBoard) -> str:
+    """
+    Determine the current game stage based on board fill percentage.
+    Args:
+        board: The SudokuBoard object
+    Returns: 'early', 'middle', or 'late'
+    """
+    filled_cells = sum(1 for i in range(board.N)
+                       for j in range(board.N)
+                       if board.get((i, j)) != board.empty)
 
+    fill_percentage = filled_cells / (board.N * board.N)
+
+    if fill_percentage < 0.33:
+        return EARLY
+    elif fill_percentage > 0.67:
+        return LATE
+    return MIDDLE
