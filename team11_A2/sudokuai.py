@@ -5,16 +5,11 @@
 # import random
 # import time
 # import copy
-# from competitive_sudoku.sudoku import TabooMove
-from competitive_sudoku.sudoku import GameState, Move, SudokuBoard
+# from competitive_sudoku.sudoku import TabooMove, SudokuBoard
+from competitive_sudoku.sudoku import GameState, Move
 import competitive_sudoku.sudokuai
 from team11_A2.game_state_manager import GameStateManager
 from team11_A2.valid_entry_finder import ValidEntryFinder
-
-# GAME STATE
-EARLY = "early"
-MIDDLE = "middle"
-LATE = "late"
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     """
@@ -77,7 +72,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # propose random move at the start of the game just in case depth 0 doesn't terminate
         self.propose_move(moves[len(moves)//2])
 
-        current_stage = get_game_stage(game_state.board)
+        current_stage = get_game_stage(len(moves))
+        print("--------------- Available moves: ", len(moves), " --------------- ")
         print(f"\n\n\nCurrent game stage: {current_stage}")
 
         is_maximizing = self.player_number == 1
@@ -144,21 +140,17 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             # print(f'Best move proposed: {best_move.square} -> {best_move.value} with score {best_score}')
 
 
-def get_game_stage(board: SudokuBoard) -> str:
+def get_game_stage(n_moves) -> str:
     """
     Determine the current game stage based on number of empty squares.
     Args:
-        board: The SudokuBoard object
+        n_moves: the number of available moves for given player
     Returns: 'early', 'middle', or 'late'
     """
-    empty_squares = sum(1 for i in range(board.N)
-                        for j in range(board.N)
-                        if board.get((i, j)) == board.empty)
 
-    # These thresholds can be adjusted based on testing
-    if empty_squares > 15:  # When there are 15 or more squares to fill, minimax is not able to go over depth 0
-        return EARLY
-    elif empty_squares <= 8:    # When there are 8 or fewer squares to fill, 
-                                # minimax is able to check to depth 4/5
-        return LATE
-    return MIDDLE # Here it usually checks for depth 0/1 sometimes 2/3
+    # thresholds can be adjusted based on testing
+    if n_moves > 31: 
+        return "early"
+    elif n_moves <= 10:
+        return "late"
+    return "middle"  # Here it usually checks for depth 0/1 sometimes 2/3

@@ -16,14 +16,14 @@
       "justMyCode": true
     },
     {
-      "name": "A2 vs random 4x4",
+      "name": "A2 vs random 3x3",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/simulate_game.py",
       "args": [
-        "--first=team11_A2",
-        "--second=random_player",
-        "--board=boards/empty-4x4.txt",
+        "--second=team11_A2",
+        "--first=random_player",
+        "--board=boards/empty-3x3.txt",
         "--time=1.0"
       ],
       "console": "integratedTerminal",
