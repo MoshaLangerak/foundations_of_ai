@@ -48,7 +48,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 maxEval = max(maxEval, eval)
                 alpha = max(alpha, eval)
                 if beta <= alpha:
-                    print('Pruning')
                     break
             return maxEval
         else:
@@ -58,7 +57,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 minEval = min(minEval, eval)
                 beta = min(beta, eval)
                 if beta <= alpha:
-                    print('Pruning')
                     break
             return minEval
     
@@ -69,17 +67,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
         is_maximizing = self.player_number == 1
 
-        print(f'Player {self.player_number} is maximizing: {is_maximizing}')
-        print("Played taboo moves: ", ", ".join(str(move) for move in game_state.taboo_moves), "\n")
-
         # set the maximum depth for iterative deepening
         max_depth = 15
         global_best_move = None
         global_best_score = -float('inf') if is_maximizing else float('inf')
 
         for depth in range(0, max_depth + 1):
-            print(f'-------- Checking depth {depth} --------')
-
             best_score = -float('inf') if is_maximizing else float('inf')
             best_move = None
             alpha = -float('inf')
@@ -89,46 +82,37 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             if global_best_move is not None:
                 new_game_state = GameStateManager().add_move_to_game_state(game_state, global_best_move)
                 global_best_score = self.minimax(new_game_state, depth, alpha, beta, is_maximizing)
-                print(f'Global best move {global_best_move.square} -> {global_best_move.value} has score {global_best_score} at depth {depth}')
 
             # then check all possible moves for the current depth
             for i, move in enumerate(moves):
-                print(f'Checking move {i}: {move.square} -> {move.value}')
                 new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
                 score = self.minimax(new_game_state, depth, alpha, beta, is_maximizing)
-
-                print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}{" (inf/-inf expected)" if i == 0 else ""}')
 
                 if is_maximizing:
                     if score > best_score and not score == float('inf'):
                         best_score = score
                         best_move = move
-                        print(f'New best move: {best_move.square} -> {best_move.value} with score {best_score}')
                         
                         # if the score is better than the global best score (could be from a previous depth), update the global best move and propose it
                         if best_score > global_best_score:
                             global_best_score = best_score
                             global_best_move = best_move
                             self.propose_move(global_best_move)
-                            print(f'Move is also global best move, so proposed: {global_best_move.square} -> {global_best_move.value} with score {global_best_score}')
                 else:
                     if score < best_score and not score == float('-inf'):
                         best_score = score
                         best_move = move
-                        print(f'New best move: {best_move.square} -> {best_move.value} with score {best_score}')
                         
                         # if the score is better than the global best score (could be from a previous depth), update the global best move
                         if best_score < global_best_score:
                             global_best_score = best_score
                             global_best_move = best_move
                             self.propose_move(global_best_move)
-                            print(f'Move is also global best move, so proposed: {global_best_move.square} -> {global_best_move.value} with score {global_best_score}')
             
             # only propose a move when all moves of the current depth have been checked <-- this is a design choice
             self.propose_move(best_move)
             global_best_move = best_move
             global_best_score = best_score
-            print(f'Best move proposed: {best_move.square} -> {best_move.value} with score {best_score}')
 
 
 class GameStateManager():
@@ -353,15 +337,7 @@ class ValidEntryFinder:
 
             # get the values that are not possible in the current square
             present_values = row_values | col_values | block_values
-
-            if square == (2, 3):
-                print("Checking taboo moves for square (2,3):")
-                print(
-                    f"Available entries before taboo check: {available_entries - present_values}")
-                print(f"Taboo moves: {self.taboo_moves}")
-                print(
-                    f"Testing TabooMove((2,3), 1) in taboo_moves: {TabooMove((2,3), 1) in self.taboo_moves}")
-            
+         
             # compute possible entries
             pos_entries = set(
                 entry for entry in (available_entries - present_values)

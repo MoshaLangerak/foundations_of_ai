@@ -1,6 +1,6 @@
 import copy
 
-from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove
+from competitive_sudoku.sudoku import GameState, Move
 
 class GameStateManager():
 

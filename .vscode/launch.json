@@ -2,14 +2,28 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Random vs Team11 2x2",
+      "name": "A2 vs A1 2x2",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/simulate_game.py",
       "args": [
-        "--first=random_player",
-        "--second=team11_A1",
+        "--second=team11_A2",
+        "--first=team11_A1",
         "--board=boards/empty-2x2.txt",
+        "--time=1.0"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "A2 vs random 4x4",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/simulate_game.py",
+      "args": [
+        "--first=team11_A2",
+        "--second=random_player",
+        "--board=boards/empty-4x4.txt",
         "--time=1.0"
       ],
       "console": "integratedTerminal",
