@@ -10,7 +10,7 @@ class HeuristicSolver():
         self.n = game_state.board.n
         self.N = game_state.board.N
 
-    def evaluate_entries(self, game_state: GameState):
+    def solve_board(self, game_state: GameState):
         """
         Evaluates each valid entry based on heuristic rules to see if it is a taboo move or not.
         @return: list of taboo moves
@@ -26,19 +26,16 @@ class HeuristicSolver():
         # def index2square(self, k: int) -> Square
 
         board_squares = game_state.board.squares
-
-        # solved_board_squares = game_state.board.squares
         
         options = list(range(1, self.N + 1))
         options_board_squares = [options if x == 0 else [x] for x in board_squares]
 
-        print(f'self.N: {self.N}')
-        print(f'self.m: {self.m}')
-        print(f'self.n: {self.n}')
-        print(f'options: {options}')
-        print(f'board_squares: {board_squares}')
-        # print(f'solved_board_squares: {solved_board_squares}')
-        print(f'options_board_squares: {options_board_squares}')
+        # print(f'self.N: {self.N}')
+        # print(f'self.m: {self.m}')
+        # print(f'self.n: {self.n}')
+        # print(f'options: {options}')
+        # print(f'board_squares: {board_squares}')
+        # print(f'options_board_squares: {options_board_squares}')
 
         changes = True
         while changes:
@@ -50,26 +47,26 @@ class HeuristicSolver():
                 options_board_squares, changes_blocks = self.check_blocks(options_board_squares)
 
                 basic_changes = changes_rows or changes_columns or changes_blocks
-                print(f'basic_changes: {basic_changes}')
+                # print(f'basic_changes: {basic_changes}')
 
-            print(f'options_board_squares: {options_board_squares}')
+            # print(f'options_board_squares: {options_board_squares}')
 
             options_board_squares, hidden_single_changes = self.find_hidden_single(options_board_squares)
-            print(f'hidden_single_changes: {hidden_single_changes}')
+            # print(f'hidden_single_changes: {hidden_single_changes}')
 
             # if a hidden single change has been made, we need to recheck the rows, columns and blocks, so go to the next iteration of the while loop
             if hidden_single_changes:
                 continue
 
             options_board_squares, naked_pair_changes = self.find_naked_pair(options_board_squares)
-            print(f'naked_pair_changes: {naked_pair_changes}')
+            # print(f'naked_pair_changes: {naked_pair_changes}')
 
             if naked_pair_changes:
                 continue
 
             changes = basic_changes or hidden_single_changes or naked_pair_changes
 
-            print(f'changes: {changes}')
+            # print(f'changes: {changes}')
 
         result_board_squares = [square[0] if len(square) == 1 else 0 for square in options_board_squares]
 
@@ -108,6 +105,7 @@ class HeuristicSolver():
         
         return output, changes
     
+
     def check_columns(self, options_board_squares):
         changes = False
         output = [[] for _ in range(self.N * self.N)]
@@ -140,6 +138,7 @@ class HeuristicSolver():
 
         return output, changes
     
+
     def check_blocks(self, options_board_squares):
         changes = False
         output = [[] for _ in range(self.N * self.N)]
@@ -310,9 +309,9 @@ class HeuristicSolver():
 if __name__ == "__main__":
     import time
 
-    # board_file = 'boards/empty-2x3.txt'
+    board_file = 'boards/empty-2x3.txt'
     # board_file = 'boards/test-2x2.txt'
-    board_file = 'boards/test-3x3.txt'
+    # board_file = 'boards/test-3x3.txt'
 
     text = Path(board_file).read_text()
     game_state = parse_game_state(text, 'rows')
@@ -323,7 +322,7 @@ if __name__ == "__main__":
 
     start = time.time()
     solver = HeuristicSolver(game_state)
-    game_state.board.squares = solver.evaluate_entries(game_state)
+    game_state.board.squares = solver.solve_board(game_state)
     end = time.time()
 
     print(f'Time taken: {end - start} seconds')
