@@ -25,14 +25,14 @@ class HeuristicSolver():
         solving_moves = []
         for i in range(self.N * self.N):
             if self.board_squares[i] == 0 and result_board_squares[i] != 0:
-                solving_moves.append([SudokuBoard().index2square(i), result_board_squares[i]])
+                solving_moves.append([(i // self.N, i % self.N), result_board_squares[i]])
 
         non_solving_moves = []
         for i in range(self.N * self.N):
             if result_board_squares[i] != 0 and len(options_board_squares[i]) > 1:
                 for option in options_board_squares[i]:
                     if option != result_board_squares[i]:
-                        non_solving_moves.append([SudokuBoard().index2square(i), option])
+                        non_solving_moves.append([(i // self.N, i % self.N), option])
 
         return solving_moves, non_solving_moves
 
@@ -95,7 +95,7 @@ class HeuristicSolver():
         options_board_squares, changes_blocks = self.check_blocks(options_board_squares)
 
         return options_board_squares, changes_rows or changes_columns or changes_blocks
-
+    
 
     def check_rows(self, options_board_squares):
         changes = False
@@ -263,44 +263,43 @@ class HeuristicSolver():
         # check rows
         for i in range(self.N):
             row = options_board_squares[i * self.N: (i + 1) * self.N]
-            seen_pairs = []
+            seen_tuples = {}
 
             for j in range(self.N):
-                square = row[j]
-
+                square = tuple(row[j])
                 if len(square) == tuple_size:
-                    if square in seen_pairs:
-                        for k in range(self.N):
-                            if row[k] != square:
-                                for option in square:
-                                    if option in row[k]:
-                                        options_board_squares[i * self.N + k].remove(option)
-                                        changes = True
+                    if square in seen_tuples:
+                        seen_tuples[square] += 1
+                        if seen_tuples[square] == tuple_size:
+                            for k in range(self.N):
+                                if tuple(row[k]) != square:
+                                    for option in square:
+                                        if option in row[k]:
+                                            options_board_squares[i * self.N + k].remove(option)
+                                            changes = True
                     else:
-                        seen_pairs.append(square)
-                else:
-                    seen_pairs.append(square)
+                        seen_tuples[square] = 1
 
         # check columns
         for i in range(self.N):
             column = options_board_squares[i::self.N]
-            seen_pairs = []
+            seen_tuples = {}
 
             for j in range(self.N):
-                square = column[j]
+                square = tuple(column[j])
 
                 if len(square) == tuple_size:
-                    if square in seen_pairs:
-                        for k in range(self.N):
-                            if column[k] != square:
-                                for option in square:
-                                    if option in column[k]:
-                                        options_board_squares[i + k * self.N].remove(option)
-                                        changes = True
+                    if square in seen_tuples:
+                        seen_tuples[square] += 1
+                        if seen_tuples[square] == tuple_size:
+                            for k in range(self.N):
+                                if tuple(column[k]) != square:
+                                    for option in square:
+                                        if option in column[k]:
+                                            options_board_squares[i + k * self.N].remove(option)
+                                            changes = True
                     else:
-                        seen_pairs.append(square)
-                else:
-                    seen_pairs.append(square)
+                        seen_tuples[square] = 1
         
         # check blocks
         block_squares = {block_id: [] for block_id in [(i, j) for i in range(self.n) for j in range(self.m)]}
@@ -313,19 +312,22 @@ class HeuristicSolver():
                 block_squares[block_id].append(options_board_squares[index])
 
         for block_id in block_squares:
-            seen_pairs = []
+            seen_tuples = {}
 
             for square in block_squares[block_id]:
+                square = tuple(square)
                 if len(square) == tuple_size:
-                    if square in seen_pairs:
-                        for k in range(self.N):
-                            if block_squares[block_id][k] != square:
-                                for option in square:
-                                    if option in block_squares[block_id][k]:
-                                        options_board_squares[block_id[0] * self.m + k // self.n * self.N + k % self.m].remove(option)
-                                        changes = True
+                    if square in seen_tuples:
+                        seen_tuples[square] += 1
+                        if seen_tuples[square] == tuple_size:
+                            for k in range(self.N):
+                                if tuple(block_squares[block_id][k]) != square:
+                                    for option in square:
+                                        if option in block_squares[block_id][k]:
+                                            options_board_squares[block_id[0] * self.m + k // self.n * self.N + k % self.m].remove(option)
+                                            changes = True
                     else:
-                        seen_pairs.append(square)
+                        seen_tuples[square] = 1
 
         return options_board_squares, changes
 
