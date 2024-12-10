@@ -142,7 +142,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
 
 def get_game_stage(n_moves) -> str:
     """
-    Determine the current game stage based on number of empty squares.
+    Determine the current game stage based on available moves.
     Args:
         n_moves: the number of available moves for given player
     Returns: 'early', 'middle', or 'late'
