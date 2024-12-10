@@ -64,9 +64,22 @@ class HeuristicSolver():
             if hidden_single_changes:
                 continue
 
-            options_board_squares, naked_pair_changes = self.find_naked_pair(options_board_squares)
+            # check for naked pairs
+            options_board_squares, naked_pair_changes = self.find_naked_tuple(options_board_squares, 2)
 
             if naked_pair_changes:
+                continue
+
+            # check for naked triples
+            options_board_squares, naked_triple_changes = self.find_naked_tuple(options_board_squares, 3)
+
+            if naked_triple_changes:
+                continue
+
+            # check for naked quadruples
+            options_board_squares, naked_quadruple_changes = self.find_naked_tuple(options_board_squares, 4)
+
+            if naked_quadruple_changes:
                 continue
 
             changes = basic_changes or hidden_single_changes or naked_pair_changes
@@ -237,7 +250,7 @@ class HeuristicSolver():
         return options_board_squares, changes
 
 
-    def find_naked_pair(self, options_board_squares):
+    def find_naked_tuple(self, options_board_squares, tuple_size):
         """
         Finds naked pairs in the Sudoku board.
         @return: updated options_board_squares and a boolean indicating if there were changes
@@ -255,7 +268,7 @@ class HeuristicSolver():
             for j in range(self.N):
                 square = row[j]
 
-                if len(square) == 2:
+                if len(square) == tuple_size:
                     if square in seen_pairs:
                         for k in range(self.N):
                             if row[k] != square:
@@ -276,7 +289,7 @@ class HeuristicSolver():
             for j in range(self.N):
                 square = column[j]
 
-                if len(square) == 2:
+                if len(square) == tuple_size:
                     if square in seen_pairs:
                         for k in range(self.N):
                             if column[k] != square:
@@ -303,7 +316,7 @@ class HeuristicSolver():
             seen_pairs = []
 
             for square in block_squares[block_id]:
-                if len(square) == 2:
+                if len(square) == tuple_size:
                     if square in seen_pairs:
                         for k in range(self.N):
                             if block_squares[block_id][k] != square:
