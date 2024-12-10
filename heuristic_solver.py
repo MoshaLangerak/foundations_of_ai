@@ -57,7 +57,17 @@ class HeuristicSolver():
             options_board_squares, hidden_single_changes = self.find_hidden_single(options_board_squares)
             print(f'hidden_single_changes: {hidden_single_changes}')
 
-            changes = basic_changes or hidden_single_changes
+            # if a hidden single change has been made, we need to recheck the rows, columns and blocks, so go to the next iteration of the while loop
+            if hidden_single_changes:
+                continue
+
+            options_board_squares, naked_pair_changes = self.find_naked_pair(options_board_squares)
+            print(f'naked_pair_changes: {naked_pair_changes}')
+
+            if naked_pair_changes:
+                continue
+
+            changes = basic_changes or hidden_single_changes or naked_pair_changes
 
             print(f'changes: {changes}')
 
@@ -168,7 +178,7 @@ class HeuristicSolver():
     def find_hidden_single(self, options_board_squares):
         """
         Finds hidden singles in the Sudoku board.
-        @return: list of hidden singles
+        @return: updated options_board_squares and a boolean indicating if there were changes
         """
         changes = False
         # check for each row, column and block if there is an option that only appears once
@@ -216,12 +226,93 @@ class HeuristicSolver():
 
         return options_board_squares, changes
 
+
+    def find_naked_pair(self, options_board_squares):
+        """
+        Finds naked pairs in the Sudoku board.
+        @return: updated options_board_squares and a boolean indicating if there were changes
+        """
+        changes = False
+
+        # check for each row, column and block if there are two squares with the same two options
+        # if so, those two options are a naked pair and can be removed from the other squares
+
+        # check rows
+        for i in range(self.N):
+            row = options_board_squares[i * self.N: (i + 1) * self.N]
+            seen_pairs = []
+
+            for j in range(self.N):
+                square = row[j]
+
+                if len(square) == 2:
+                    if square in seen_pairs:
+                        for k in range(self.N):
+                            if row[k] != square:
+                                for option in square:
+                                    if option in row[k]:
+                                        options_board_squares[i * self.N + k].remove(option)
+                                        changes = True
+                    else:
+                        seen_pairs.append(square)
+                else:
+                    seen_pairs.append(square)
+
+        # check columns
+        for i in range(self.N):
+            column = options_board_squares[i::self.N]
+            seen_pairs = []
+
+            for j in range(self.N):
+                square = column[j]
+
+                if len(square) == 2:
+                    if square in seen_pairs:
+                        for k in range(self.N):
+                            if column[k] != square:
+                                for option in square:
+                                    if option in column[k]:
+                                        options_board_squares[i + k * self.N].remove(option)
+                                        changes = True
+                    else:
+                        seen_pairs.append(square)
+                else:
+                    seen_pairs.append(square)
+        
+        # check blocks
+        block_squares = {block_id: [] for block_id in [(i, j) for i in range(self.n) for j in range(self.m)]}
+
+        # get the squares for each block
+        for i in range(self.N):
+            for j in range(self.N):
+                index = i * self.N + j
+                block_id = (i // self.m, j // self.n)
+                block_squares[block_id].append(options_board_squares[index])
+
+        for block_id in block_squares:
+            seen_pairs = []
+
+            for square in block_squares[block_id]:
+                if len(square) == 2:
+                    if square in seen_pairs:
+                        for k in range(self.N):
+                            if block_squares[block_id][k] != square:
+                                for option in square:
+                                    if option in block_squares[block_id][k]:
+                                        options_board_squares[block_id[0] * self.m + k // self.n * self.N + k % self.m].remove(option)
+                                        changes = True
+                    else:
+                        seen_pairs.append(square)
+
+        return options_board_squares, changes
+
+
 if __name__ == "__main__":
     import time
 
     # board_file = 'boards/empty-2x3.txt'
-    board_file = 'boards/test-2x2.txt'
-    # board_file = 'boards/test-3x3-2.txt'
+    # board_file = 'boards/test-2x2.txt'
+    board_file = 'boards/test-3x3.txt'
 
     text = Path(board_file).read_text()
     game_state = parse_game_state(text, 'rows')
