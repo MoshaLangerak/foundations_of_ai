@@ -214,35 +214,6 @@ class HeuristicSolver():
                     options_board_squares[i + index * self.N] = [option]
                     changes = True
 
-        # check blocks
-        block_options = {block_id: [] for block_id in [(i, j) for i in range(self.n) for j in range(self.m)]}
-        # iterate over the cells to get the options for each block
-        for i in range(self.N):
-            for j in range(self.N):
-                block_id = (i // self.m, j // self.n)
-                block_options[block_id].append(options_board_squares[i * self.N + j])
-        
-        for block_id, block in block_options.items():
-            for option in range(1, self.N + 1):
-                count = 0
-                index = -1
-
-                for j, square in enumerate(block):
-                    if len(square) == 1:
-                        continue
-
-                    if option in square:
-                        count += 1
-                        index = j
-
-                if count == 1:
-                    x, y = block_id
-                    options_board_squares[x * self.m * self.N + y * self.n] = [option]
-                    print(f'block_id: {block_id}')
-                    changes = True
-
-        print(f'block_options: {block_options}')
-
         return options_board_squares, changes
 
 if __name__ == "__main__":
