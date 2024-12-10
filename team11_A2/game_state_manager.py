@@ -44,8 +44,7 @@ class GameStateManager():
         row_values = set(game_state.board.get((row, col)) for col in range(game_state.board.n * game_state.board.m) if game_state.board.get((row, col)) != 0)
         available_entries = set(range(1, game_state.board.n * game_state.board.m + 1))
         row_values.add(move.value)
-        return row_values == available_entries
-        
+        return row_values == available_entries  
 
     def check_col_completions(self, game_state: GameState, move: Move):
         """
