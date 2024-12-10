@@ -46,23 +46,9 @@ class HeuristicSolver():
 
     def solve(self, options_board_squares):
         """
-        Evaluates each valid entry based on heuristic rules to see if it is a taboo move or not.
+        Solves the Sudoku board using a heuristic approach.
         @return: list of taboo moves
         """
-
-        # attributes from SudokuBoard
-        # N = m * n
-        # self.m = m
-        # self.n = n
-        # self.N = N     # N = m * n, numbers are in the range [1, ..., N]
-        # self.squares = [SudokuBoard.empty] * (N * N)
-        # square2index(self, square: Square) -> int
-        # def index2square(self, k: int) -> Square
-
-        # print(f'self.N: {self.N}')
-        # print(f'self.m: {self.m}')
-        # print(f'self.n: {self.n}')
-        # print(f'options_board_squares: {options_board_squares}')
 
         changes = True
 
@@ -71,26 +57,19 @@ class HeuristicSolver():
 
             while basic_changes:
                 options_board_squares, basic_changes = self.check_options(options_board_squares)
-                # print(f'basic_changes: {basic_changes}')
-
-            # print(f'options_board_squares: {options_board_squares}')
 
             options_board_squares, hidden_single_changes = self.find_hidden_single(options_board_squares)
-            # print(f'hidden_single_changes: {hidden_single_changes}')
 
             # if a hidden single change has been made, we need to recheck the rows, columns and blocks, so go to the next iteration of the while loop
             if hidden_single_changes:
                 continue
 
             options_board_squares, naked_pair_changes = self.find_naked_pair(options_board_squares)
-            # print(f'naked_pair_changes: {naked_pair_changes}')
 
             if naked_pair_changes:
                 continue
 
             changes = basic_changes or hidden_single_changes or naked_pair_changes
-
-            # print(f'changes: {changes}')
 
         result_board_squares = [square[0] if len(square) == 1 else 0 for square in options_board_squares]
 
