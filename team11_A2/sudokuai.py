@@ -148,9 +148,9 @@ def get_game_stage(n_moves) -> str:
     Returns: 'early', 'middle', or 'late'
     """
 
-    # thresholds can be adjusted based on testing
+    # thresholds to be adjusted based on testing
     if n_moves > 31: 
         return "early"
     elif n_moves <= 10:
         return "late"
-    return "middle"  # Here it usually checks for depth 0/1 sometimes 2/3
+    return "middle"
