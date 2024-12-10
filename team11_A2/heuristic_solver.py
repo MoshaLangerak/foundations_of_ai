@@ -1,14 +1,50 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove, parse_game_state
-from team11_A2.valid_entry_finder import ValidEntryFinder
 
 class HeuristicSolver():
-
     def __init__(self, game_state) -> None:
         self.m = game_state.board.m
         self.n = game_state.board.n
         self.N = game_state.board.N
 
-    def solve_board(self, game_state: GameState):
+        self.board_squares = game_state.board.squares
+
+
+    def get_moves(self):
+        options = list(range(1, self.N + 1))
+        options_board_squares = [options if x == 0 else [x] for x in self.board_squares]
+
+        options_board_squares, _ = self.check_options(options_board_squares)
+
+        result_board_squares = self.solve(options_board_squares)
+
+        solving_moves = []
+        for i in range(self.N * self.N):
+            if self.board_squares[i] == 0 and result_board_squares[i] != 0:
+                solving_moves.append([SudokuBoard().index2square(i), result_board_squares[i]])
+
+        non_solving_moves = []
+        for i in range(self.N * self.N):
+            if result_board_squares[i] != 0 and len(options_board_squares[i]) > 1:
+                for option in options_board_squares[i]:
+                    if option != result_board_squares[i]:
+                        non_solving_moves.append([SudokuBoard().index2square(i), option])
+
+        return solving_moves, non_solving_moves
+
+
+    def solve_board(self, board_squares):
+        options = list(range(1, self.N + 1))
+        options_board_squares = [options if x == 0 else [x] for x in board_squares]
+
+        return self.solve(options_board_squares)
+
+
+    def solve(self, options_board_squares):
         """
         Evaluates each valid entry based on heuristic rules to see if it is a taboo move or not.
         @return: list of taboo moves
@@ -23,28 +59,18 @@ class HeuristicSolver():
         # square2index(self, square: Square) -> int
         # def index2square(self, k: int) -> Square
 
-        board_squares = game_state.board.squares
-        
-        options = list(range(1, self.N + 1))
-        options_board_squares = [options if x == 0 else [x] for x in board_squares]
-
         # print(f'self.N: {self.N}')
         # print(f'self.m: {self.m}')
         # print(f'self.n: {self.n}')
-        # print(f'options: {options}')
-        # print(f'board_squares: {board_squares}')
         # print(f'options_board_squares: {options_board_squares}')
 
         changes = True
+
         while changes:
             basic_changes = True
 
             while basic_changes:
-                options_board_squares, changes_rows = self.check_rows(options_board_squares)
-                options_board_squares, changes_columns = self.check_columns(options_board_squares)
-                options_board_squares, changes_blocks = self.check_blocks(options_board_squares)
-
-                basic_changes = changes_rows or changes_columns or changes_blocks
+                options_board_squares, basic_changes = self.check_options(options_board_squares)
                 # print(f'basic_changes: {basic_changes}')
 
             # print(f'options_board_squares: {options_board_squares}')
@@ -69,7 +95,15 @@ class HeuristicSolver():
         result_board_squares = [square[0] if len(square) == 1 else 0 for square in options_board_squares]
 
         return result_board_squares
-        
+    
+
+    def check_options(self, options_board_squares):
+        options_board_squares, changes_rows = self.check_rows(options_board_squares)
+        options_board_squares, changes_columns = self.check_columns(options_board_squares)
+        options_board_squares, changes_blocks = self.check_blocks(options_board_squares)
+
+        return options_board_squares, changes_rows or changes_columns or changes_blocks
+
 
     def check_rows(self, options_board_squares):
         changes = False
@@ -304,26 +338,33 @@ class HeuristicSolver():
         return options_board_squares, changes
 
 
-# if __name__ == "__main__":
-    # import time
-
+if __name__ == "__main__":
+    import time
+    from pathlib import Path
+    
     # board_file = 'boards/empty-2x3.txt'
     # board_file = 'boards/test-2x2.txt'
-    # board_file = 'boards/test-3x3.txt'
+    board_file = 'boards/test-3x3.txt'
 
-    # text = Path(board_file).read_text()
-    # game_state = parse_game_state(text, 'rows')
+    text = Path(board_file).read_text()
+    game_state = parse_game_state(text, 'rows')
 
-    # print(game_state.board)
+    print(game_state.board)
 
-    # print(game_state.board.squares)
+    start = time.time()
+    solver = HeuristicSolver(game_state)
+    solved_board_squares = solver.solve_board(game_state.board.squares)
+    end = time.time()
 
-    # start = time.time()
-    # solver = HeuristicSolver(game_state)
-    # game_state.board.squares = solver.solve_board(game_state)
-    # end = time.time()
+    print(f'Time taken: {end - start} seconds')
 
-    # print(f'Time taken: {end - start} seconds')
-
-    # print(game_state.board)
+    if game_state.board.squares == solved_board_squares:
+        print('No changes made')
+    else:
+        print('Changes made')
+        print(f'game_state.board.squares: {game_state.board.squares}')
+        print(f'solved_board_squares: {solved_board_squares}')
+        solving_moves, non_solving_moves = solver.get_moves(game_state.board.squares)
+        print(f'solving_moves: {solving_moves}')
+        print(f'non_solving_moves: {non_solving_moves}')
 

@@ -10,6 +10,7 @@ from competitive_sudoku.sudoku import GameState, Move
 import competitive_sudoku.sudokuai
 from team11_A2.game_state_manager import GameStateManager
 from team11_A2.valid_entry_finder import ValidEntryFinder
+from team11_A2.heuristic_solver import HeuristicSolver
 
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     """
@@ -65,9 +66,24 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             return minEval
     
     def compute_best_move(self, game_state: GameState) -> None:
-        # implementation based on naive_player, will propose moves with increasing depth
+        is_maximizing = self.player_number == 1
+
         valid_entries = ValidEntryFinder(game_state).get_pos_entries()
-        moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)]] # ! This could be moved into the entryfinder class
+        moves = [[(i, j), value] for (i, j) in valid_entries for value in valid_entries[(i, j)]]
+
+        # use the heuristic solver to get the solving and non-solving (taboo) moves
+        solving_moves, non_solving_moves = HeuristicSolver(game_state).get_moves()
+
+        print(f'soving moves: {solving_moves}')
+        print(f'non-solving moves: {non_solving_moves}')
+
+        # remove the non-solving moves from the list of valid moves
+        if non_solving_moves != []:
+            for move in non_solving_moves:
+                if move in moves:
+                    moves.remove(move)
+
+        moves = [Move(square, value) for square, value in moves]
         
         # propose random move at the start of the game just in case depth 0 doesn't terminate
         self.propose_move(moves[len(moves)//2])
@@ -75,8 +91,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         current_stage = get_game_stage(len(moves))
         print("--------------- Available moves: ", len(moves), " --------------- ")
         print(f"\n\n\nCurrent game stage: {current_stage}")
-
-        is_maximizing = self.player_number == 1
 
         # print(f'Player {self.player_number} is maximizing: {is_maximizing}')
         # print("Played taboo moves: ", ", ".join(str(move) for move in game_state.taboo_moves), "\n")
