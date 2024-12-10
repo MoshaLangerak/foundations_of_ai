@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove, parse_game_state
 from team11_A2.valid_entry_finder import ValidEntryFinder
 
@@ -306,26 +304,26 @@ class HeuristicSolver():
         return options_board_squares, changes
 
 
-if __name__ == "__main__":
-    import time
+# if __name__ == "__main__":
+    # import time
 
-    board_file = 'boards/empty-2x3.txt'
+    # board_file = 'boards/empty-2x3.txt'
     # board_file = 'boards/test-2x2.txt'
     # board_file = 'boards/test-3x3.txt'
 
-    text = Path(board_file).read_text()
-    game_state = parse_game_state(text, 'rows')
+    # text = Path(board_file).read_text()
+    # game_state = parse_game_state(text, 'rows')
 
-    print(game_state.board)
+    # print(game_state.board)
 
-    print(game_state.board.squares)
+    # print(game_state.board.squares)
 
-    start = time.time()
-    solver = HeuristicSolver(game_state)
-    game_state.board.squares = solver.solve_board(game_state)
-    end = time.time()
+    # start = time.time()
+    # solver = HeuristicSolver(game_state)
+    # game_state.board.squares = solver.solve_board(game_state)
+    # end = time.time()
 
-    print(f'Time taken: {end - start} seconds')
+    # print(f'Time taken: {end - start} seconds')
 
-    print(game_state.board)
+    # print(game_state.board)
 
