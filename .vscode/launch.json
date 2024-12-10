@@ -181,6 +181,26 @@
       "env": {
         "PYTHONPATH": "${workspaceFolder}"
       }
+    },
+    {
+      "name": "Calculate Max Minimax",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/tests/calculate_max_minimax.py",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "Check Precomputed Moves",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/tests/check_precomputed_moves.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
     }
   ]
 }
