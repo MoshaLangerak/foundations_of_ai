@@ -40,21 +40,34 @@ class HeuristicSolver():
         # print(f'solved_board_squares: {solved_board_squares}')
         print(f'options_board_squares: {options_board_squares}')
 
-        i = 0
-        while i < 1:
-            options_board_squares = self.check_rows(options_board_squares)
-            options_board_squares = self.check_columns(options_board_squares)
-            options_board_squares = self.check_blocks(options_board_squares)
+        changes = True
+        while changes:
+            basic_changes = True
+
+            while basic_changes:
+                options_board_squares, changes_rows = self.check_rows(options_board_squares)
+                options_board_squares, changes_columns = self.check_columns(options_board_squares)
+                options_board_squares, changes_blocks = self.check_blocks(options_board_squares)
+
+                basic_changes = changes_rows or changes_columns or changes_blocks
+                print(f'basic_changes: {basic_changes}')
 
             print(f'options_board_squares: {options_board_squares}')
 
-            hidden_singles = self.find_hidden_single(options_board_squares)
-            print(f'hidden_singles: {hidden_singles}')
+            options_board_squares, hidden_single_changes = self.find_hidden_single(options_board_squares)
+            print(f'hidden_single_changes: {hidden_single_changes}')
 
-            i += 1
+            changes = basic_changes or hidden_single_changes
+
+            print(f'changes: {changes}')
+
+        result_board_squares = [square[0] if len(square) == 1 else 0 for square in options_board_squares]
+
+        return result_board_squares
         
 
     def check_rows(self, options_board_squares):
+        changes = False
         output = [[] for _ in range(self.N * self.N)]
         seen_values = [[] for _ in range(self.N)]
 
@@ -79,13 +92,14 @@ class HeuristicSolver():
 
                 for option in square:
                     if option in seen_values[i]:
-                        pass
+                        changes = True
                     else:
                         output[index].append(option)
         
-        return output
+        return output, changes
     
     def check_columns(self, options_board_squares):
+        changes = False
         output = [[] for _ in range(self.N * self.N)]
         seen_values = [[] for _ in range(self.N)]
 
@@ -110,14 +124,14 @@ class HeuristicSolver():
 
                 for option in square:
                     if option in seen_values[i]:
-                        pass
+                        changes = True
                     else:
                         output[index].append(option)
 
-        return output
+        return output, changes
     
     def check_blocks(self, options_board_squares):
-        # Initialize the output and seen values for each block
+        changes = False
         output = [[] for _ in range(self.N * self.N)]
         seen_values = {block_id: [] for block_id in [(i, j) for i in range(self.n) for j in range(self.m)]}
 
@@ -127,8 +141,6 @@ class HeuristicSolver():
                 index = i * self.N + j
                 block_id = (i // self.m, j // self.n)
                 square = options_board_squares[index]
-
-                print(f'index: {index}, block_id: {block_id}, square: {square}')
 
                 if len(square) == 1:
                     output[index].append(square[0])
@@ -146,11 +158,11 @@ class HeuristicSolver():
 
                 for option in square:
                     if option in seen_values[block_id]:
-                        pass
+                        changes = True
                     else:
                         output[index].append(option)
 
-        return output
+        return output, changes
     
 
     def find_hidden_single(self, options_board_squares):
@@ -158,40 +170,87 @@ class HeuristicSolver():
         Finds hidden singles in the Sudoku board.
         @return: list of hidden singles
         """
+        changes = False
         # check for each row, column and block if there is an option that only appears once
         # if so, that option is a hidden single
-        hidden_singles = []
-
-        def hidden_single_in_list(lst):
-            output = []
-            for option in range(1, self.N + 1):
-                count = 0
-
-                for i in range(self.N):
-                    if option in lst[i]:
-                        count += 1
-
-                if count == 1:
-                    output.append(option)
-
-            return output
 
         # check rows
         for i in range(self.N):
             row = options_board_squares[i * self.N: (i + 1) * self.N]
 
-            # print(f'row: {row}')
-            
-            hidden_singles += hidden_single_in_list(row)
+            for option in range(1, self.N + 1):
+                count = 0
+                index = -1
+
+                for j, square in enumerate(row):
+                    if len(square) == 1:
+                        continue
+
+                    if option in square:
+                        count += 1
+                        index = j
+
+                if count == 1:
+                    options_board_squares[i * self.N + index] = [option]
+                    changes = True
         
-        return hidden_singles
+        # check columns
+        for i in range(self.N):
+            column = options_board_squares[i::self.N]
+
+            for option in range(1, self.N + 1):
+                count = 0
+                index = -1
+
+                for j, square in enumerate(column):
+                    if len(square) == 1:
+                        continue
+
+                    if option in square:
+                        count += 1
+                        index = j
+
+                if count == 1:
+                    options_board_squares[i + index * self.N] = [option]
+                    changes = True
+
+        # check blocks
+        block_options = {block_id: [] for block_id in [(i, j) for i in range(self.n) for j in range(self.m)]}
+        # iterate over the cells to get the options for each block
+        for i in range(self.N):
+            for j in range(self.N):
+                block_id = (i // self.m, j // self.n)
+                block_options[block_id].append(options_board_squares[i * self.N + j])
+        
+        for block_id, block in block_options.items():
+            for option in range(1, self.N + 1):
+                count = 0
+                index = -1
+
+                for j, square in enumerate(block):
+                    if len(square) == 1:
+                        continue
+
+                    if option in square:
+                        count += 1
+                        index = j
+
+                if count == 1:
+                    x, y = block_id
+                    options_board_squares[x * self.m * self.N + y * self.n] = [option]
+                    print(f'block_id: {block_id}')
+                    changes = True
+
+        print(f'block_options: {block_options}')
+
+        return options_board_squares, changes
 
 if __name__ == "__main__":
     import time
 
     # board_file = 'boards/empty-2x3.txt'
-    # board_file = 'boards/test-2x2.txt'
-    board_file = 'boards/test-3x3-1.txt'
+    board_file = 'boards/test-2x2.txt'
+    # board_file = 'boards/test-3x3-2.txt'
 
     text = Path(board_file).read_text()
     game_state = parse_game_state(text, 'rows')
@@ -202,7 +261,10 @@ if __name__ == "__main__":
 
     start = time.time()
     solver = HeuristicSolver(game_state)
-    solver.evaluate_entries(game_state)
+    game_state.board.squares = solver.evaluate_entries(game_state)
     end = time.time()
 
     print(f'Time taken: {end - start} seconds')
+
+    print(game_state.board)
+
