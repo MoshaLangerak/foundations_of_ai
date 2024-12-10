@@ -54,23 +54,29 @@ class HeuristicSolver():
 
     def check_rows(self, options_board_squares):
         output = [[] for _ in range(self.N * self.N)]
-        seen_values = []
+        seen_values = [[] for _ in range(self.N)]
 
+        # for each row, get the values that are already seen
         for i in range(self.N):
             for j in range(self.N):
                 index = i * self.N + j
                 square = options_board_squares[index]
 
-                if j == 0:
-                    seen_values = []
-                
                 if len(square) == 1:
                     output[index].append(square[0])
-                    seen_values.append(square[0])
+                    seen_values[i].append(square[0])
+
+        # for each row update the output
+        for i in range(self.N):
+            for j in range(self.N):
+                index = i * self.N + j
+                square = options_board_squares[index]
+
+                if len(square) == 1:
                     continue
 
                 for option in square:
-                    if option in seen_values:
+                    if option in seen_values[i]:
                         pass
                     else:
                         output[index].append(option)
@@ -79,27 +85,33 @@ class HeuristicSolver():
     
     def check_columns(self, options_board_squares):
         output = [[] for _ in range(self.N * self.N)]
-        seen_values = []
+        seen_values = [[] for _ in range(self.N)]
 
+        # for each column, get the values that are already seen
         for i in range(self.N):
             for j in range(self.N):
                 index = i + j * self.N
                 square = options_board_squares[index]
 
-                if j == 0:
-                    seen_values = []
-                
                 if len(square) == 1:
                     output[index].append(square[0])
-                    seen_values.append(square[0])
+                    seen_values[j].append(square[0])
+
+        # for each column update the output
+        for i in range(self.N):
+            for j in range(self.N):
+                index = i + j * self.N
+                square = options_board_squares[index]
+
+                if len(square) == 1:
                     continue
 
                 for option in square:
-                    if option in seen_values:
+                    if option in seen_values[j]:
                         pass
                     else:
                         output[index].append(option)
-        
+
         return output
     
     def check_blocks(self, options_board_squares):
@@ -107,20 +119,31 @@ class HeuristicSolver():
         output = [[] for _ in range(self.N * self.N)]
         seen_values = {block_id: [] for block_id in [(i, j) for i in range(self.n) for j in range(self.m)]}
 
-        for i in range(self.N):  # Iterate over rows
-            for j in range(self.N):  # Iterate over columns
+        # get the values that are already seen for each block
+        for i in range(self.N):
+            for j in range(self.N):
                 index = i * self.N + j
                 block_id = (i // self.m, j // self.n)  # Calculate the block ID
                 square = options_board_squares[index]
 
                 if len(square) == 1:  # If the square is solved
                     output[index].append(square[0])
-                    if square[0] not in seen_values[block_id]:
-                        seen_values[block_id].append(square[0])
+                    seen_values[block_id].append(square[0])
+
+        # for each block update the output
+        for i in range(self.N):
+            for j in range(self.N):
+                index = i * self.N + j
+                block_id = (i // self.m, j // self.n)
+                square = options_board_squares[index]
+
+                if len(square) == 1:
                     continue
 
-                for option in square:  # Iterate over possible options
-                    if option not in seen_values[block_id]:
+                for option in square:
+                    if option in seen_values[block_id]:
+                        pass
+                    else:
                         output[index].append(option)
 
         return output
@@ -160,8 +183,11 @@ class HeuristicSolver():
 
 
 if __name__ == "__main__":
-    board_file = 'boards/empty-2x3.txt'
+    import time
+
+    # board_file = 'boards/empty-2x3.txt'
     # board_file = 'boards/test-2x2.txt'
+    board_file = 'boards/test-3x3.txt'
 
     text = Path(board_file).read_text()
     game_state = parse_game_state(text, 'rows')
@@ -170,5 +196,9 @@ if __name__ == "__main__":
 
     print(game_state.board.squares)
 
+    start = time.time()
     solver = HeuristicSolver(game_state)
     solver.evaluate_entries(game_state)
+    end = time.time()
+
+    print(f'Time taken: {end - start} seconds')
