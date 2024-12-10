@@ -27,7 +27,7 @@ class HeuristicSolver():
 
         board_squares = game_state.board.squares
 
-        solved_board_squares = game_state.board.squares
+        # solved_board_squares = game_state.board.squares
         
         options = list(range(1, self.N + 1))
         options_board_squares = [options if x == 0 else [x] for x in board_squares]
@@ -37,20 +37,22 @@ class HeuristicSolver():
         print(f'self.n: {self.n}')
         print(f'options: {options}')
         print(f'board_squares: {board_squares}')
-        print(f'solved_board_squares: {solved_board_squares}')
+        # print(f'solved_board_squares: {solved_board_squares}')
         print(f'options_board_squares: {options_board_squares}')
 
-        options_board_squares = self.check_rows(options_board_squares)
-        options_board_squares = self.check_columns(options_board_squares)
-        options_board_squares = self.check_blocks(options_board_squares)
+        i = 0
+        while i < 1:
+            options_board_squares = self.check_rows(options_board_squares)
+            options_board_squares = self.check_columns(options_board_squares)
+            options_board_squares = self.check_blocks(options_board_squares)
 
-        print(f'options_board_squares: {options_board_squares}')
+            print(f'options_board_squares: {options_board_squares}')
 
-        while True:
-            
-            break
-            # naked_singles = self.find_naked_single()
-            # hidden_singles = self.find_hidden_single()
+            hidden_singles = self.find_hidden_single(options_board_squares)
+            print(f'hidden_singles: {hidden_singles}')
+
+            i += 1
+        
 
     def check_rows(self, options_board_squares):
         output = [[] for _ in range(self.N * self.N)]
@@ -95,7 +97,7 @@ class HeuristicSolver():
 
                 if len(square) == 1:
                     output[index].append(square[0])
-                    seen_values[j].append(square[0])
+                    seen_values[i].append(square[0])
 
         # for each column update the output
         for i in range(self.N):
@@ -107,7 +109,7 @@ class HeuristicSolver():
                     continue
 
                 for option in square:
-                    if option in seen_values[j]:
+                    if option in seen_values[i]:
                         pass
                     else:
                         output[index].append(option)
@@ -123,10 +125,12 @@ class HeuristicSolver():
         for i in range(self.N):
             for j in range(self.N):
                 index = i * self.N + j
-                block_id = (i // self.m, j // self.n)  # Calculate the block ID
+                block_id = (i // self.m, j // self.n)
                 square = options_board_squares[index]
 
-                if len(square) == 1:  # If the square is solved
+                print(f'index: {index}, block_id: {block_id}, square: {square}')
+
+                if len(square) == 1:
                     output[index].append(square[0])
                     seen_values[block_id].append(square[0])
 
@@ -147,47 +151,47 @@ class HeuristicSolver():
                         output[index].append(option)
 
         return output
-
-
-    def find_naked_single(self):
-        """
-        Finds nakes singles in the Sudoku board.
-        @return: list of naked singles
-        """
-        pass
     
-    def find_hidden_single(self):
+
+    def find_hidden_single(self, options_board_squares):
         """
         Finds hidden singles in the Sudoku board.
         @return: list of hidden singles
         """
-        
-        # check for each row, column and square whether there is an option that only appears once
+        # check for each row, column and block if there is an option that only appears once
+        # if so, that option is a hidden single
         hidden_singles = []
 
-        # check for each row
-        for row in range(self.board.N):
-            for option in self.options:
+        def hidden_single_in_list(lst):
+            output = []
+            for option in range(1, self.N + 1):
                 count = 0
-                index = 0
-                for i in range(self.board.N):
-                    if self.board.squares[self.board.square2index((row, i))] == option:
+
+                for i in range(self.N):
+                    if option in lst[i]:
                         count += 1
-                        index = i
 
-                        if count > 1:
-                            break
-                    
                 if count == 1:
-                    hidden_singles.append((row, index), option)
+                    output.append(option)
 
+            return output
+
+        # check rows
+        for i in range(self.N):
+            row = options_board_squares[i * self.N: (i + 1) * self.N]
+
+            # print(f'row: {row}')
+            
+            hidden_singles += hidden_single_in_list(row)
+        
+        return hidden_singles
 
 if __name__ == "__main__":
     import time
 
     # board_file = 'boards/empty-2x3.txt'
     # board_file = 'boards/test-2x2.txt'
-    board_file = 'boards/test-3x3.txt'
+    board_file = 'boards/test-3x3-1.txt'
 
     text = Path(board_file).read_text()
     game_state = parse_game_state(text, 'rows')
