@@ -12,6 +12,12 @@ from team11_A2.game_state_manager import GameStateManager
 from team11_A2.valid_entry_finder import ValidEntryFinder
 from team11_A2.heuristic_solver import HeuristicSolver
 
+# Game stages
+EARLY = 'early'
+MIDDLE = 'middle'
+LATE = 'late'
+
+
 class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     """
     Sudoku AI that computes a move for a given sudoku configuration.
@@ -23,6 +29,57 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def evaluate(self, game_state: GameState):
         return game_state.scores[0] - game_state.scores[1]
     
+
+    def evaluate(self, game_state: GameState):
+        """Evaluate based on maximizing the current player's allowed squares, while minimizing the opponent's allowed squares """
+        # game_stage = self.get_game_stage(game_state.board)
+
+        # if game_stage == EARLY:
+        #     print(self.get_playable_squares(game_state=game_state,player_nr=1) - self.get_playable_squares(game_state=game_state,player_nr=2))
+        #     return self.get_playable_squares(game_state=game_state,player_nr=1) - self.get_playable_squares(game_state=game_state,player_nr=2)
+        # else:
+        #     return game_state.scores[0] - game_state.scores[1]
+
+
+        # print(self.get_playable_squares(game_state=game_state,player_nr=1) - self.get_playable_squares(game_state=game_state,player_nr=2))
+        return self.get_playable_squares(game_state=game_state,player_nr=1) - self.get_playable_squares(game_state=game_state,player_nr=2)
+
+    
+    def get_playable_squares(self, game_state, player_nr):
+        # find all occupied squares
+        allowed_squares = game_state.allowed_squares1 if player_nr == 1 else game_state.occupied_squares2
+        current_occupied = game_state.occupied_squares1 if player_nr == 1 else game_state.occupied_squares2
+        opponent_occupied = game_state.occupied_squares2 if player_nr == 1 else game_state.occupied_squares1
+
+        # get total board size
+        board_size = game_state.board.n * game_state.board.m
+        offsets = [
+            (-1, -1),(-1, 0),(-1, 1),
+            (0,  -1),        ( 0, 1),
+            (1,  -1),( 1, 0),( 1, 1)
+        ]
+
+        # print(f'currnet occupied: {current_occupied}')
+        
+        allowed_squares_current = set()
+        for y, x in current_occupied:
+            for dy, dx in offsets:
+                if 0 <= y + dy < board_size and 0 <= x + dx < board_size:
+                    allowed_squares_current.add((y+dy, x+dx))
+
+        # print(f'allowed squares current: {allowed_squares_current}')
+
+        allowed_squares_current = (
+            (allowed_squares_current | set(allowed_squares))
+             - set(current_occupied)
+             - set(opponent_occupied)
+        )
+
+        # print(f'allowed squares current: {allowed_squares_current}')
+
+        return len(allowed_squares_current)
+
+
     def getChildren(self, game_state: GameState):
         valid_entries = ValidEntryFinder(game_state).get_pos_entries()
 
@@ -78,6 +135,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             return minEval
     
     def compute_best_move(self, game_state: GameState) -> None:
+        print(game_state.occupied_squares())
         is_maximizing = self.player_number == 1
 
         valid_entries = ValidEntryFinder(game_state).get_pos_entries()
@@ -107,7 +165,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         # propose random move at the start of the game just in case depth 0 doesn't terminate
         self.propose_move(moves[len(moves)//2])
 
-        current_stage = get_game_stage(len(moves))
+        current_stage = self.get_game_stage(len(moves))
         print(f"Current game stage: {current_stage}")
 
         print(f'Player {self.player_number} is maximizing: {is_maximizing}')
@@ -181,24 +239,24 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                         best_move = potential_taboo_moves[0]
                         print(f'Skip move is better than best move: {best_move.square} -> {best_move.value} with score {best_score}')
 
-            # only propose a move when all moves of the current depth have been checked <-- this is a design choice
+            # propose a move when all moves of the current depth have been checked
             self.propose_move(best_move)
             global_best_move = best_move
             global_best_score = best_score
             print(f'Best move proposed: {best_move.square} -> {best_move.value} with score {best_score}')
 
 
-def get_game_stage(n_moves) -> str:
-    """
-    Determine the current game stage based on available moves.
-    Args:
-        n_moves: the number of available moves for given player
-    Returns: 'early', 'middle', or 'late'
-    """
+    def get_game_stage(self, n_moves) -> str:
+        """
+        Determine the current game stage based on available moves.
+        Args:
+            n_moves: the number of available moves for given player
+        Returns: 'early', 'middle', or 'late'
+        """
 
-    # thresholds to be adjusted based on testing
-    if n_moves > 31: 
-        return "early"
-    elif n_moves <= 10:
-        return "late"
-    return "middle"
+        # thresholds to be adjusted based on testing
+        if n_moves > 31: 
+            return EARLY
+        elif n_moves <= 10:
+            return LATE
+        return MIDDLE
