@@ -30,63 +30,31 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return game_state.scores[0] - game_state.scores[1]
     
 
-    def evaluate(self, game_state: GameState):
-        """Evaluate based on maximizing the current player's allowed squares, while minimizing the opponent's allowed squares """
-        # game_stage = self.get_game_stage(game_state.board)
+    # def evaluate(self, game_state: GameState,child):
+    #     """Evaluate based on maximizing the current player's allowed squares, while minimizing the opponent's allowed squares """
+    #     # game_stage = self.get_game_stage(game_state.board)
 
-        # if game_stage == EARLY:
-        #     print(self.get_playable_squares(game_state=game_state,player_nr=1) - self.get_playable_squares(game_state=game_state,player_nr=2))
-        #     return self.get_playable_squares(game_state=game_state,player_nr=1) - self.get_playable_squares(game_state=game_state,player_nr=2)
-        # else:
-        #     return game_state.scores[0] - game_state.scores[1]
+    #     # if game_stage == EARLY:
+    #     #     print(self.get_playable_squares(game_state=game_state,player_nr=1) - self.get_playable_squares(game_state=game_state,player_nr=2))
+    #     #     return self.get_playable_squares(game_state=game_state,player_nr=1) - self.get_playable_squares(game_state=game_state,player_nr=2)
+    #     # else:
+    #     #     return game_state.scores[0] - game_state.scores[1]
 
 
-        # print(self.get_playable_squares(game_state=game_state,player_nr=1) - self.get_playable_squares(game_state=game_state,player_nr=2))
-        return self.get_playable_squares(game_state=game_state,player_nr=1) - self.get_playable_squares(game_state=game_state,player_nr=2)
+    #     # print(self.get_playable_squares(game_state=game_state,player_nr=1) - self.get_playable_squares(game_state=game_state,player_nr=2))
+    #     return self.get_playable_squares(game_state=game_state,player_nr=1) - self.get_playable_squares(game_state=game_state,player_nr=2)
 
     
-    def get_playable_squares(self, game_state, player_nr):
-        # find all occupied squares
-        allowed_squares = game_state.allowed_squares1 if player_nr == 1 else game_state.occupied_squares2
-        current_occupied = game_state.occupied_squares1 if player_nr == 1 else game_state.occupied_squares2
-        opponent_occupied = game_state.occupied_squares2 if player_nr == 1 else game_state.occupied_squares1
-
-        # get total board size
-        board_size = game_state.board.n * game_state.board.m
-        offsets = [
-            (-1, -1),(-1, 0),(-1, 1),
-            (0,  -1),        ( 0, 1),
-            (1,  -1),( 1, 0),( 1, 1)
-        ]
-
-        # print(f'currnet occupied: {current_occupied}')
-        
-        allowed_squares_current = set()
-        for y, x in current_occupied:
-            for dy, dx in offsets:
-                if 0 <= y + dy < board_size and 0 <= x + dx < board_size:
-                    allowed_squares_current.add((y+dy, x+dx))
-
-        # print(f'allowed squares current: {allowed_squares_current}')
-
-        allowed_squares_current = (
-            (allowed_squares_current | set(allowed_squares))
-             - set(current_occupied)
-             - set(opponent_occupied)
-        )
-
-        # print(f'allowed squares current: {allowed_squares_current}')
-
-        return len(allowed_squares_current)
-
 
     def getChildren(self, game_state: GameState):
         valid_entries = ValidEntryFinder(game_state).get_pos_entries()
 
         if valid_entries is None:
             return None
-        
         moves = [[(i, j), value] for (i, j) in valid_entries for value in valid_entries[(i, j)]]
+
+        if not moves:
+            return None      
 
         solving_moves, potential_taboo_moves = HeuristicSolver(game_state).get_moves()
         
@@ -103,6 +71,8 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     
         return children
     
+
+
     def minimax(self, game_state: GameState, depth, alpha, beta, maximizingPlayer):
         # set the boolean for game_finished to True if there are no empty squares left
         game_finished = not any([game_state.board.squares[i] == 0 for i in range(game_state.board.N * game_state.board.N)])
@@ -133,13 +103,63 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 if beta <= alpha:
                     break
             return minEval
-    
+
+    def get_playable_squares(self, game_state, player_nr, move):
+        # find all occupied squares
+        allowed_squares = game_state.allowed_squares1 if player_nr == 1 else game_state.occupied_squares2
+        current_occupied = game_state.occupied_squares1 if player_nr == 1 else game_state.occupied_squares2
+        opponent_occupied = game_state.occupied_squares2 if player_nr == 1 else game_state.occupied_squares1
+
+        # get total board size
+        board_size = game_state.board.n * game_state.board.m
+        offsets = [
+            (-1, -1),(-1, 0),(-1, 1),
+            (0,  -1),        ( 0, 1),
+            (1,  -1),( 1, 0),( 1, 1)
+        ]
+
+        # find available squares on the current board for player_nr
+        allowed_squares_prev = {
+            (y + dy, x + dx)
+            for y, x in current_occupied
+            for dy, dx in offsets
+            if 0 <= y + dy < board_size and 0 <= x + dx < board_size
+        }
+
+        allowed_squares_prev = (
+            (allowed_squares_prev | set(allowed_squares))
+             - set(current_occupied)
+             - set(opponent_occupied)
+        )
+
+
+        # find available squares after playing the move for player_nr
+        current_occupied.append(move)
+        
+        allowed_squares_current = {
+            (y + dy, x + dx)
+            for y, x in current_occupied
+            for dy, dx in offsets
+            if 0 <= y + dy < board_size and 0 <= x + dx < board_size
+        }
+
+        allowed_squares_current = (
+            (allowed_squares_current | set(allowed_squares))
+             - set(current_occupied)
+             - set(opponent_occupied)
+        )
+
+        return len(allowed_squares_current) - len(allowed_squares_prev)
+
+
     def compute_best_move(self, game_state: GameState) -> None:
         print(game_state.occupied_squares())
         is_maximizing = self.player_number == 1
 
         valid_entries = ValidEntryFinder(game_state).get_pos_entries()
         moves = [[(i, j), value] for (i, j) in valid_entries for value in valid_entries[(i, j)]]
+
+        # moves = ValidEntryFinder(game_state).get_pos_entries()
 
         print(f'Valid moves: {len(moves)}')
         print(f'Valid moves: {moves}')
@@ -160,6 +180,56 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         print(f'Valid moves after removing taboo moves: {len(moves)}')
         print(f'Valid moves after removing taboo moves: {moves}')
 
+        if self.get_game_stage(len(moves)) == EARLY:
+
+            # ! FIRST MOVE: start at a cell 1 next to a corner to eventually get maximum coverage
+            occupied_squares = game_state.occupied_squares1 if self.player_number == 1 else game_state.occupied_squares2
+            allowed_squares = game_state.allowed_squares1 if self.player_number == 1 else game_state.allowed_squares2
+            board_size = game_state.board.n * game_state.board.m
+
+            if len(occupied_squares) == 0:
+
+                # all corners
+                near_corners = [
+                        (0,1),                      (0,board_size-2),
+                    (1,0),                                      (1, board_size-1),
+
+                    (board_size-2,0),                           (board_size-2,board_size-1),
+                        (board_size-1,1),           (board_size-1,board_size-2)
+                ]
+
+                options = [move for move in valid_entries if move in allowed_squares]
+                
+                if options: # check whether non-empty
+                    global_best_move = Move(options[0],list(valid_entries[options[0]])[0])
+                    self.propose_move(global_best_move)
+                    return
+
+            # ! find move with maximum new coverage
+            available_squares_max = 0
+            best_move = None
+
+            for square in valid_entries:#[sq for sq in valid_entries if len(valid_entries[sq])>0]:
+                available_squares_proposal = self.get_playable_squares(game_state, self.player_number, square)
+                print(f'HERE:{square=}:{available_squares_proposal=}')
+                if available_squares_proposal > available_squares_max:
+                    available_squares_max = available_squares_proposal
+                    best_move = square
+                    
+            print(f'HERE 2: {best_move=}')
+            print(f'HERE 2: {valid_entries=}')
+            if best_move:
+                global_best_move = Move(best_move,list(valid_entries[best_move])[0])
+                
+                self.propose_move(global_best_move)
+                return
+        
+        
+        # TODO: give positive weight for exploring new block, column, or row 
+
+
+
+        # Use minimax, because points available!
         moves = [Move(square, value) for square, value in moves]
         
         # propose random move at the start of the game just in case depth 0 doesn't terminate
@@ -260,3 +330,146 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         elif n_moves <= 10:
             return LATE
         return MIDDLE
+    
+
+
+    # def compute_best_move(self, game_state: GameState) -> None:
+        # print(game_state.occupied_squares())
+        # is_maximizing = self.player_number == 1
+
+        # valid_entries = ValidEntryFinder(game_state).get_pos_entries()
+        # moves = [[(i, j), value] for (i, j) in valid_entries for value in valid_entries[(i, j)]]
+
+        # # moves = ValidEntryFinder(game_state).get_pos_entries()
+
+        # print(f'Valid moves: {len(moves)}')
+        # print(f'Valid moves: {moves}')
+
+        # # use the heuristic solver to get the solving and non-solving (taboo) moves
+        # solving_moves, potential_taboo_moves = HeuristicSolver(game_state).get_moves()
+
+        # print(f'solving moves: {solving_moves}')
+        # print(f'non-solving moves: {len(potential_taboo_moves)}')
+        # print(f'non-solving moves: {potential_taboo_moves}')
+
+        # # remove the non-solving moves from the list of valid moves
+        # if potential_taboo_moves != []:
+        #     for move in potential_taboo_moves:
+        #         if move in moves:
+        #             moves.remove(move)
+
+        # print(f'Valid moves after removing taboo moves: {len(moves)}')
+        # print(f'Valid moves after removing taboo moves: {moves}')
+
+        # # check if points possible
+        # for square,value in moves:
+        #     if self.get_game_stage(len(moves)) == LATE:
+        #         continue
+        #     move = Move(square,value)
+        #     if (GameStateManager().check_row_completions(game_state,move) or
+        #         GameStateManager().check_col_completions(game_state,move) or
+        #         GameStateManager().check_square_completions(game_state,move) or
+        #         self.get_game_stage(len(moves)) == EARLY):
+        #         break
+        # else: # only runs if the loop is NOT terminated by the break --> # if no: find move that gets most new squares
+        #     new_available_max = 0
+        #     best_move = None
+
+        #     for square in valid_entries:
+        #         new_available_proposal = self.get_playable_squares(game_state, self.player_number, square)
+        #         if new_available_proposal > new_available_max:
+        #             best_move = square
+
+        #     global_best_move = Move(best_move,list(valid_entries[best_move])[0])
+
+        #     self.propose_move(global_best_move)
+        #     return
+
+
+
+        # # Use minimax, because points available!
+        # moves = [Move(square, value) for square, value in moves]
+        
+        # # propose random move at the start of the game just in case depth 0 doesn't terminate
+        # self.propose_move(moves[len(moves)//2])
+
+        # current_stage = self.get_game_stage(len(moves))
+        # print(f"Current game stage: {current_stage}")
+
+        # print(f'Player {self.player_number} is maximizing: {is_maximizing}')
+
+        # # set the maximum depth for iterative deepening
+        # max_depth = 15
+        # global_best_move = None
+        # global_best_score = -float('inf') if is_maximizing else float('inf')
+
+        # for depth in range(0, max_depth + 1):
+        #     print(f'-------- Checking depth {depth} --------')
+
+        #     best_score = -float('inf') if is_maximizing else float('inf')
+        #     best_move = None
+        #     alpha = -float('inf')
+        #     beta = float('inf')
+
+        #     # first update the score of the global best move for the current depth
+        #     if global_best_move is not None:
+        #         new_game_state = GameStateManager().add_move_to_game_state(game_state, global_best_move)
+        #         global_best_score = self.minimax(new_game_state, depth, alpha, beta, is_maximizing)
+        #         print(f'Global best move {global_best_move.square} -> {global_best_move.value} has score {global_best_score} at depth {depth}')
+
+        #     # then check all possible moves for the current depth
+        #     for i, move in enumerate(moves):
+        #         print(f'Checking move {i}: {move.square} -> {move.value}')
+        #         new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
+        #         score = self.minimax(new_game_state, depth, alpha, beta, is_maximizing)
+
+        #         print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}{" (inf/-inf expected)" if i == 0 else ""}')
+
+        #         if is_maximizing:
+        #             if score > best_score and not score == float('inf'):
+        #                 best_score = score
+        #                 best_move = move
+        #                 print(f'New best move: {best_move.square} -> {best_move.value} with score {best_score}')
+                        
+        #                 # if the score is better than the global best score (could be from a previous depth), update the global best move and propose it
+        #                 if best_score > global_best_score:
+        #                     global_best_score = best_score
+        #                     global_best_move = best_move
+        #                     self.propose_move(global_best_move)
+        #                     print(f'Move is also global best move, so proposed: {global_best_move.square} -> {global_best_move.value} with score {global_best_score}')
+        #         else:
+        #             if score < best_score and not score == float('-inf'):
+        #                 best_score = score
+        #                 best_move = move
+        #                 print(f'New best move: {best_move.square} -> {best_move.value} with score {best_score}')
+                        
+        #                 # if the score is better than the global best score (could be from a previous depth), update the global best move
+        #                 if best_score < global_best_score:
+        #                     global_best_score = best_score
+        #                     global_best_move = best_move
+        #                     self.propose_move(global_best_move)
+        #                     print(f'Move is also global best move, so proposed: {global_best_move.square} -> {global_best_move.value} with score {global_best_score}')
+            
+        #     if potential_taboo_moves != [] and (current_stage == 'middle' or current_stage == 'late'):
+        #         print(f'Checking taboo moves at depth {depth}')
+        #         new_game_state = GameStateManager().add_potential_taboo_move_to_game_state(game_state, Move(potential_taboo_moves[0][0], potential_taboo_moves[0][1]))
+        #         taboo_score = self.minimax(new_game_state, depth, alpha, beta, is_maximizing)
+        #         print(f'Score for taboo move {potential_taboo_moves[0][0]} -> {potential_taboo_moves[0][1]} is {taboo_score}, best score is {best_score}')
+
+        #         if is_maximizing:
+        #             if taboo_score > best_score:
+        #                 best_score = taboo_score
+        #                 best_move = potential_taboo_moves[0]
+        #                 print(f'Skip move is better than best move: {best_move.square} -> {best_move.value} with score {best_score}')
+        #         else:
+        #             if taboo_score < best_score:
+        #                 best_score = taboo_score
+        #                 best_move = potential_taboo_moves[0]
+        #                 print(f'Skip move is better than best move: {best_move.square} -> {best_move.value} with score {best_score}')
+
+        #     # propose a move when all moves of the current depth have been checked
+        #     self.propose_move(best_move)
+        #     global_best_move = best_move
+        #     global_best_score = best_score
+        #     print(f'Best move proposed: {best_move.square} -> {best_move.value} with score {best_score}')
+

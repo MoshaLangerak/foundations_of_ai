@@ -18,9 +18,15 @@ class GameStateManager():
         new_game_state = copy.deepcopy(game_state)
         new_game_state.board.put(move.square, move.value)
         new_game_state.moves.append(move)
-        new_game_state.current_player = 3 - new_game_state.current_player
+
+        if new_game_state.current_player == 1:
+            new_game_state.occupied_squares1.append(move.square)
+        else:
+            new_game_state.occupied_squares2.append(move.square)
 
         number_of_completions = 0
+        new_game_state.current_player = 3 - new_game_state.current_player
+        
         if self.check_row_completions(game_state, move):
             number_of_completions += 1
         if self.check_col_completions(game_state, move):
@@ -68,7 +74,7 @@ class GameStateManager():
         row_values = set(game_state.board.get((row, col)) for col in range(game_state.board.n * game_state.board.m) if game_state.board.get((row, col)) != 0)
         available_entries = set(range(1, game_state.board.n * game_state.board.m + 1))
         row_values.add(move.value)
-        return row_values == available_entries  
+        return row_values == available_entries
 
 
     def check_col_completions(self, game_state: GameState, move: Move):

@@ -163,3 +163,4 @@ class ValidEntryFinder:
             dct_pos_entries[square] = pos_entries
         
         return dct_pos_entries
+        # return [[(i, j), value] for (i, j) in dct_pos_entries for value in dct_pos_entries[(i, j)]]

@@ -627,3 +627,7 @@ def parse_game_state(text: str, playmode: str) -> GameState:
                      occupied_squares1=occupied_squares1,
                      occupied_squares2=occupied_squares2
                     )
+
+
+
+

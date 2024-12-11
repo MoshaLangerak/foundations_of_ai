@@ -234,7 +234,6 @@ def play_game(board_file: Optional[str], name1: str, name2: str, calculation_tim
 
     return simulate_game(game_state, player1, player2, calculation_time=calculation_time, verbose=verbose, warmup=warmup, playmode=playmode)
 
-
 def main():
     cmdline_parser = argparse.ArgumentParser(description='Script for simulating a competitive sudoku game.')
     cmdline_parser.add_argument('--first', help="the module name of the first player's SudokuAI class", default='team11_A1')
