@@ -15,6 +15,10 @@ class HeuristicSolver():
 
 
     def get_moves(self):
+        """
+        Uses the heuristic solver function and translates the output to a list of moves.
+        @return: list of solving moves and list of non-solving moves
+        """
         options = list(range(1, self.N + 1))
         options_board_squares = [options if x == 0 else [x] for x in self.board_squares]
 
@@ -49,6 +53,10 @@ class HeuristicSolver():
 
 
     def solve_board(self, board_squares):
+        """
+        Converts the board squares to options and solves the board.
+        @return: list of solved board squares and list of options for each square
+        """
         options = list(range(1, self.N + 1))
         options_board_squares = [options if x == 0 else [x] for x in board_squares]
 
@@ -57,10 +65,9 @@ class HeuristicSolver():
 
     def solve(self, options_board_squares):
         """
-        Solves the Sudoku board using a heuristic approach.
+        Reduces the options provided using the hueristic rules. 
         @return: list of taboo moves
         """
-
         changes = True
 
         while changes:
@@ -101,6 +108,10 @@ class HeuristicSolver():
     
 
     def check_options(self, options_board_squares):
+        """
+        Reduces the options in a board based on the basic rules of Sudoku.
+        @return: updated options_board_squares and a boolean indicating if there were changes
+        """
         options_board_squares, changes_rows = self.check_rows(options_board_squares)
         options_board_squares, changes_columns = self.check_columns(options_board_squares)
         options_board_squares, changes_blocks = self.check_blocks(options_board_squares)
