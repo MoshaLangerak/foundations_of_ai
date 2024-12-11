@@ -120,6 +120,7 @@ class GameStateManager():
     def __init__(self) -> None:
         pass
 
+
     def add_move_to_game_state(self, game_state: GameState, move: Move):
         """
         Adds a move to the game state and returns the new game state.
@@ -145,6 +146,7 @@ class GameStateManager():
         new_game_state.scores[game_state.current_player - 1] += scores_dict[number_of_completions]
 
         return new_game_state
+
 
     def check_row_completions(self, game_state: GameState, move: Move):
         """
@@ -173,6 +175,7 @@ class GameStateManager():
         col_values.add(move.value)
         return col_values == available_entries
 
+
     def check_square_completions(self, game_state: GameState, move: Move):
         """
         Check if a move completes a square.
@@ -191,6 +194,7 @@ class GameStateManager():
         available_entries = set(range(1, game_state.board.n * game_state.board.m + 1))
         square_values.add(move.value)
         return square_values == available_entries
+
 
 class ValidEntryFinder:
 
@@ -276,6 +280,7 @@ class ValidEntryFinder:
         """
         return (coordinate[0]//self.m) * self.m + (coordinate[1]//self.n)
         
+
     def get_block_coordinates(self, block_id: int) -> set[tuple]: # ! set[tuple] used here, which is not as detailed in other functions
         """
         Find all coordinates of the block with block_id.
@@ -294,6 +299,7 @@ class ValidEntryFinder:
         }
 
         return coordinates
+    
     
     def get_block_dict(self) -> dict:
         """

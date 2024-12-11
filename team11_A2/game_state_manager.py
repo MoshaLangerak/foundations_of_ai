@@ -7,6 +7,7 @@ class GameStateManager():
     def __init__(self) -> None:
         pass
 
+
     def add_move_to_game_state(self, game_state: GameState, move: Move):
         """
         Adds a move to the game state and returns the new game state.
@@ -33,6 +34,29 @@ class GameStateManager():
 
         return new_game_state
 
+
+    def add_potential_taboo_move_to_game_state(self, game_state: GameState, move: Move):
+        """
+        Adds a potential taboo move to the game state and returns the new game state.
+        @param game_state: GameState object representing the current state of the Competitive Sudoku game.
+        @param move: Move object representing the potential taboo move to be added to the game state.
+        @return: new GameState object with the potential taboo move added to the game state.
+        """
+        new_game_state = copy.deepcopy(game_state)
+        new_game_state.taboo_moves.append(move)
+        new_game_state.moves.append(move)
+        new_game_state.current_player = 3 - new_game_state.current_player
+
+        return new_game_state
+    
+
+    def add_no_move_to_game_state(self, game_state: GameState):
+        new_game_state = copy.deepcopy(game_state)
+        new_game_state.current_player = 3 - new_game_state.current_player
+
+        return new_game_state
+
+
     def check_row_completions(self, game_state: GameState, move: Move):
         """
         Check if a move completes a row.
@@ -44,8 +68,8 @@ class GameStateManager():
         row_values = set(game_state.board.get((row, col)) for col in range(game_state.board.n * game_state.board.m) if game_state.board.get((row, col)) != 0)
         available_entries = set(range(1, game_state.board.n * game_state.board.m + 1))
         row_values.add(move.value)
-        return row_values == available_entries
-        
+        return row_values == available_entries  
+
 
     def check_col_completions(self, game_state: GameState, move: Move):
         """
@@ -59,6 +83,7 @@ class GameStateManager():
         available_entries = set(range(1, game_state.board.n * game_state.board.m + 1))
         col_values.add(move.value)
         return col_values == available_entries
+
 
     def check_square_completions(self, game_state: GameState, move: Move):
         """
