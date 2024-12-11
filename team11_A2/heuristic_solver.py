@@ -15,29 +15,49 @@ class HeuristicSolver():
 
 
     def get_moves(self):
+        """
+        Uses the heuristic solver function and translates the output to a list of moves.
+        @return: list of solving moves and list of non-solving moves
+        """
         options = list(range(1, self.N + 1))
         options_board_squares = [options if x == 0 else [x] for x in self.board_squares]
 
         options_board_squares, _ = self.check_options(options_board_squares)
 
-        result_board_squares = self.solve(options_board_squares)
+        # if somehow the board contains a unvalid move, return empty lists
+        try:
+            solved_board_squares, result_options_board_squares = self.solve(options_board_squares)
+        except Exception as e:
+            print(e)
+            return [], []
 
         solving_moves = []
         for i in range(self.N * self.N):
-            if self.board_squares[i] == 0 and result_board_squares[i] != 0:
-                solving_moves.append([(i // self.N, i % self.N), result_board_squares[i]])
+            if self.board_squares[i] == 0 and solved_board_squares[i] != 0:
+                solving_moves.append([(i // self.N, i % self.N), solved_board_squares[i]])
 
         non_solving_moves = []
         for i in range(self.N * self.N):
-            if result_board_squares[i] != 0 and len(options_board_squares[i]) > 1:
+            if solved_board_squares[i] != 0 and len(options_board_squares[i]) > 1:
                 for option in options_board_squares[i]:
-                    if option != result_board_squares[i]:
+                    if option != solved_board_squares[i]:
                         non_solving_moves.append([(i // self.N, i % self.N), option])
+
+        for i in range(self.N * self.N):
+            if len(result_options_board_squares[i]) != len(options_board_squares[i]):
+                for option in options_board_squares[i]:
+                    if option not in result_options_board_squares[i]:
+                        if [(i // self.N, i % self.N), option] not in non_solving_moves:
+                           non_solving_moves.append([(i // self.N, i % self.N), option])
 
         return solving_moves, non_solving_moves
 
 
     def solve_board(self, board_squares):
+        """
+        Converts the board squares to options and solves the board.
+        @return: list of solved board squares and list of options for each square
+        """
         options = list(range(1, self.N + 1))
         options_board_squares = [options if x == 0 else [x] for x in board_squares]
 
@@ -46,10 +66,9 @@ class HeuristicSolver():
 
     def solve(self, options_board_squares):
         """
-        Solves the Sudoku board using a heuristic approach.
+        Reduces the options provided using the hueristic rules. 
         @return: list of taboo moves
         """
-
         changes = True
 
         while changes:
@@ -84,12 +103,16 @@ class HeuristicSolver():
 
             changes = basic_changes or hidden_single_changes or naked_pair_changes
 
-        result_board_squares = [square[0] if len(square) == 1 else 0 for square in options_board_squares]
+        solved_board_squares = [square[0] if len(square) == 1 else 0 for square in options_board_squares]
 
-        return result_board_squares
+        return solved_board_squares, options_board_squares
     
 
     def check_options(self, options_board_squares):
+        """
+        Reduces the options in a board based on the basic rules of Sudoku.
+        @return: updated options_board_squares and a boolean indicating if there were changes
+        """
         options_board_squares, changes_rows = self.check_rows(options_board_squares)
         options_board_squares, changes_columns = self.check_columns(options_board_squares)
         options_board_squares, changes_blocks = self.check_blocks(options_board_squares)
