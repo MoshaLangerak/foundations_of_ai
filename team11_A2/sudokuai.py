@@ -24,24 +24,88 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
     def __init__(self):
         super().__init__()
 
+    # def evaluate(self, game_state: GameState):
+
+    # def evaluate(self, game_state: GameState): # ? WIP
+    #     """Evaluate based on maximizing the current player's allowed squares, while minimizing the opponent's allowed squares """
+    #     # return len(game_state.allowed_squares1) if self.player_number == 1 else len(game_state.allowed_squares2)
+    #     return game_state.scores[0] - game_state.scores[1]
+
     def evaluate(self, game_state: GameState):
-        return game_state.scores[0] - game_state.scores[1]
-    
+        """Evaluate based on maximizing the current player's allowed squares, while minimizing the opponent's allowed squares """
+        # if self.get_game_stage(game_state.board) == EARLY:
+            # return len(game_state.player_squares(player_nr=1)) if self.player_number == 1 else len(game_state.player_squares(player_nr=2))
+            # else:
+        #     return game_state.scores[0] - game_state.scores[1]
+
+        return self.get_playable_squares(game_state=game_state,player_nr=1)# if self.player_number == 1 else self.get_playable_squares(game_state=game_state,player_nr=2)
+
+
+    def get_playable_squares(self, game_state, player_nr):
+        # find all occupied squares
+        allowed_squares = game_state.allowed_squares1 if player_nr == 1 else game_state.occupied_squares2
+        current_occupied = game_state.occupied_squares1 if player_nr == 1 else game_state.occupied_squares2
+        opponent_occupied = game_state.occupied_squares2 if player_nr == 1 else game_state.occupied_squares1
+
+        print(current_occupied)
+
+        # get total board size
+        board_size = game_state.board.n * game_state.board.m
+        offsets = [
+            (-1, -1),(-1, 0),(-1, 1),
+            (0,  -1),        ( 0, 1),
+            (1,  -1),( 1, 0),( 1, 1)
+        ]
+        
+        # get all surrounding areas
+        # surrounding = {
+        #     (y + dy, x + dx)
+        #     for y, x in current_occupied
+        #     for dy, dx in offsets
+        #     if 0 <= y + dy < board_size and 0 <= x + dx < board_size
+        # } | set(allowed_squares)
+
+        allowed_squares_current = set()
+        for y, x in current_occupied:
+            for dy, dx in offsets:
+                if 0 <= y + dy < board_size and 0 <= x + dx < board_size:
+                    allowed_squares_current.add((y+dy, x+dx))
+
+        allowed_squares_current = (
+            (allowed_squares_current | set(allowed_squares))
+             - set(current_occupied)
+             - set(opponent_occupied)
+        )
+
+        allowed_squares_previous = set()
+        for y, x in current_occupied[:-1]:
+            for dy, dx in offsets:
+                if 0 <= y + dy < board_size and 0 <= x + dx < board_size:
+                    allowed_squares_previous.add((y+dy, x+dx))
+
+        allowed_squares_previous = (
+            (allowed_squares_previous | set(allowed_squares))
+             - set(current_occupied)
+             - set(opponent_occupied)
+        )
+
+        return len(allowed_squares_current) - len(allowed_squares_previous)
+
     def getChildren(self, game_state: GameState):
         valid_entries = ValidEntryFinder(game_state).get_pos_entries()
 
         if valid_entries is None:
             return None
-        
+
         children = []
         for square in valid_entries:
             for entry in valid_entries[square]:
-                move = Move(square, entry)
-                new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
+                move = Move(square, entry) # make every possible entry a Move object
+                new_game_state = GameStateManager().add_move_to_game_state(game_state, move) 
                 children.append(new_game_state)
     
         return children
-    
+
     def minimax(self, game_state: GameState, depth, alpha, beta, maximizingPlayer):
         children = self.getChildren(game_state)
         
@@ -68,11 +132,11 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     print('Pruning')
                     break
             return minEval
-    
+
     def compute_best_move(self, game_state: GameState) -> None:
         # implementation based on naive_player, will propose moves with increasing depth
         valid_entries = ValidEntryFinder(game_state).get_pos_entries()
-        moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)]] # ! This could be moved into the entryfinder class
+        moves = [Move((i, j), value) for (i, j) in valid_entries for value in valid_entries[(i, j)]] # ! This could be moved into the entry finder class
 
         is_maximizing = self.player_number == 1
 
@@ -137,22 +201,21 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             global_best_score = best_score
             print(f'Best move proposed: {best_move.square} -> {best_move.value} with score {best_score}')
 
+    def get_game_stage(self, board: SudokuBoard) -> str:
+        """
+        Determine the current game stage based on board fill percentage.
+        Args:
+            board: The SudokuBoard object
+        Returns: 'early', 'middle', or 'late'
+        """
+        filled_cells = sum(1 for i in range(board.N)
+                        for j in range(board.N)
+                        if board.get((i, j)) != board.empty)
 
-def get_game_stage(board: SudokuBoard) -> str:
-    """
-    Determine the current game stage based on board fill percentage.
-    Args:
-        board: The SudokuBoard object
-    Returns: 'early', 'middle', or 'late'
-    """
-    filled_cells = sum(1 for i in range(board.N)
-                       for j in range(board.N)
-                       if board.get((i, j)) != board.empty)
+        fill_percentage = filled_cells / (board.N * board.N)
 
-    fill_percentage = filled_cells / (board.N * board.N)
-
-    if fill_percentage < 0.33:
-        return EARLY
-    elif fill_percentage > 0.67:
-        return LATE
-    return MIDDLE
+        if fill_percentage < 0.33:
+            return EARLY
+        elif fill_percentage > 0.67:
+            return LATE
+        return MIDDLE

@@ -33,6 +33,7 @@ class GameStateManager():
 
         return new_game_state
 
+
     def check_row_completions(self, game_state: GameState, move: Move):
         """
         Check if a move completes a row.
@@ -45,7 +46,7 @@ class GameStateManager():
         available_entries = set(range(1, game_state.board.n * game_state.board.m + 1))
         row_values.add(move.value)
         return row_values == available_entries
-        
+
 
     def check_col_completions(self, game_state: GameState, move: Move):
         """

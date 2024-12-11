@@ -62,7 +62,7 @@ File format
 -----------
 The file format for sudoku boards is as follows. A board with regions of size
 m x n (with m the number of rows and n the number of columns) is stored as the fields 'rows' and 'columns' containing the numbers m and n, followed by a field 'board' containing the (m * n) * m * n values of the squares of the
-board. Empty squares are printed as a dot '.'. When a square is non-empty, a '+' or '-' is appended to the value to indicate whether it is occupied by the first or second player, respectively.
+board. Empty squares are printed as a dot '.'.s When a square is non-empty, a '+' or '-' is appended to the value to indicate whether it is occupied by the first or second player, respectively.
 
 Optionally, this may be followed by a field 'moves' containing the move history of the game represented in this file; a field 'taboo-moves' specifying moves that were already declared taboo, and a field 'scores' containing the scores of the two players. 
 Note: No input check is performed to see whether the specified board is the result of a legal game, so take some care when constructing boards like these yourself.
