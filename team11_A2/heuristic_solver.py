@@ -1,10 +1,3 @@
-import sys
-import os
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from competitive_sudoku.sudoku import GameState, Move, SudokuBoard, TabooMove, parse_game_state
-
 class HeuristicSolver():
     def __init__(self, game_state) -> None:
         self.m = game_state.board.m
@@ -353,35 +346,3 @@ class HeuristicSolver():
                         seen_tuples[square] = 1
 
         return options_board_squares, changes
-
-
-if __name__ == "__main__":
-    import time
-    from pathlib import Path
-    
-    # board_file = 'boards/empty-2x3.txt'
-    # board_file = 'boards/test-2x2.txt'
-    board_file = 'boards/test-3x3.txt'
-
-    text = Path(board_file).read_text()
-    game_state = parse_game_state(text, 'rows')
-
-    print(game_state.board)
-
-    start = time.time()
-    solver = HeuristicSolver(game_state)
-    solved_board_squares = solver.solve_board(game_state.board.squares)
-    end = time.time()
-
-    print(f'Time taken: {end - start} seconds')
-
-    if game_state.board.squares == solved_board_squares:
-        print('No changes made')
-    else:
-        print('Changes made')
-        print(f'game_state.board.squares: {game_state.board.squares}')
-        print(f'solved_board_squares: {solved_board_squares}')
-        solving_moves, non_solving_moves = solver.get_moves(game_state.board.squares)
-        print(f'solving_moves: {solving_moves}')
-        print(f'non_solving_moves: {non_solving_moves}')
-
