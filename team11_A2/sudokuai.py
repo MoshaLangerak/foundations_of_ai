@@ -47,9 +47,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return children
     
     def minimax(self, game_state: GameState, depth, alpha, beta, maximizingPlayer):
-        print(f'Moves in game state: {[move.__str__() for move in game_state.moves]}')
-        print(f'Current value: {self.evaluate(game_state)}')
-
         # set the boolean for game_finished to True if there are no empty squares left
         game_finished = not any([game_state.board.squares[i] == 0 for i in range(game_state.board.N * game_state.board.N)])
 
@@ -68,7 +65,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 maxEval = max(maxEval, eval)
                 alpha = max(alpha, eval)
                 if beta <= alpha:
-                    # print('Pruning')
                     break
             return maxEval
         else:
@@ -78,7 +74,6 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 minEval = min(minEval, eval)
                 beta = min(beta, eval)
                 if beta <= alpha:
-                    # print('Pruning')
                     break
             return minEval
     
