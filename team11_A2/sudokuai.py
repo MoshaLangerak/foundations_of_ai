@@ -29,12 +29,20 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         if valid_entries is None:
             return None
         
+        moves = [[(i, j), value] for (i, j) in valid_entries for value in valid_entries[(i, j)]]
+
+        solving_moves, non_solving_moves = HeuristicSolver(game_state).get_moves()
+        
+        if non_solving_moves != []:
+            for move in non_solving_moves:
+                if move in moves:
+                    moves.remove(move)
+        
         children = []
-        for square in valid_entries:
-            for entry in valid_entries[square]:
-                move = Move(square, entry)
-                new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
-                children.append(new_game_state)
+        for move in moves:
+            move = Move(move[0], move[1])
+            new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
+            children.append(new_game_state)
     
         return children
     
