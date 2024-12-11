@@ -47,10 +47,19 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return children
     
     def minimax(self, game_state: GameState, depth, alpha, beta, maximizingPlayer):
-        children = self.getChildren(game_state)
-        
-        if depth == 0 or not children:
+        print(f'Moves in game state: {[move.__str__() for move in game_state.moves]}')
+        print(f'Current value: {self.evaluate(game_state)}')
+
+        # set the boolean for game_finished to True if there are no empty squares left
+        game_finished = not any([game_state.board.squares[i] == 0 for i in range(game_state.board.N * game_state.board.N)])
+
+        if depth == 0 or game_finished:
             return self.evaluate(game_state)
+
+        children = self.getChildren(game_state)
+        if not children:
+            new_game_state = GameStateManager().add_no_move_to_game_state(game_state)
+            return self.minimax(new_game_state, depth-1, alpha, beta, not maximizingPlayer)
 
         if maximizingPlayer:
             maxEval = -float('inf')

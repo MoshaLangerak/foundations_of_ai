@@ -48,6 +48,13 @@ class GameStateManager():
         new_game_state.current_player = 3 - new_game_state.current_player
 
         return new_game_state
+    
+
+    def add_no_move_to_game_state(self, game_state: GameState):
+        new_game_state = copy.deepcopy(game_state)
+        new_game_state.current_player = 3 - new_game_state.current_player
+
+        return new_game_state
 
 
     def check_row_completions(self, game_state: GameState, move: Move):
