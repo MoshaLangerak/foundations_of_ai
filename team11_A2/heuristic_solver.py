@@ -20,18 +20,29 @@ class HeuristicSolver():
 
         options_board_squares, _ = self.check_options(options_board_squares)
 
-        result_board_squares = self.solve(options_board_squares)
+        # if somehow the board contains a unvalid move, return empty lists
+        try:
+            solved_board_squares, result_options_board_squares = self.solve(options_board_squares)
+        except Exception as e:
+            print(e)
+            return [], []
 
         solving_moves = []
         for i in range(self.N * self.N):
-            if self.board_squares[i] == 0 and result_board_squares[i] != 0:
-                solving_moves.append([(i // self.N, i % self.N), result_board_squares[i]])
+            if self.board_squares[i] == 0 and solved_board_squares[i] != 0:
+                solving_moves.append([(i // self.N, i % self.N), solved_board_squares[i]])
 
         non_solving_moves = []
         for i in range(self.N * self.N):
-            if result_board_squares[i] != 0 and len(options_board_squares[i]) > 1:
+            if solved_board_squares[i] != 0 and len(options_board_squares[i]) > 1:
                 for option in options_board_squares[i]:
-                    if option != result_board_squares[i]:
+                    if option != solved_board_squares[i]:
+                        non_solving_moves.append([(i // self.N, i % self.N), option])
+
+        for i in range(self.N * self.N):
+            if len(result_options_board_squares[i]) != len(options_board_squares[i]):
+                for option in options_board_squares[i]:
+                    if option not in result_options_board_squares[i]:
                         non_solving_moves.append([(i // self.N, i % self.N), option])
 
         return solving_moves, non_solving_moves
@@ -84,9 +95,9 @@ class HeuristicSolver():
 
             changes = basic_changes or hidden_single_changes or naked_pair_changes
 
-        result_board_squares = [square[0] if len(square) == 1 else 0 for square in options_board_squares]
+        solved_board_squares = [square[0] if len(square) == 1 else 0 for square in options_board_squares]
 
-        return result_board_squares
+        return solved_board_squares, options_board_squares
     
 
     def check_options(self, options_board_squares):
