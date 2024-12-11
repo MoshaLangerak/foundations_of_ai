@@ -47,7 +47,8 @@ class HeuristicSolver():
             if len(result_options_board_squares[i]) != len(options_board_squares[i]):
                 for option in options_board_squares[i]:
                     if option not in result_options_board_squares[i]:
-                        non_solving_moves.append([(i // self.N, i % self.N), option])
+                        if [(i // self.N, i % self.N), option] not in non_solving_moves:
+                           non_solving_moves.append([(i // self.N, i % self.N), option])
 
         return solving_moves, non_solving_moves
 
