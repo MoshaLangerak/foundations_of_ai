@@ -179,12 +179,12 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     if taboo_score > best_score:
                         best_score = taboo_score
                         best_move = potential_taboo_moves[0]
-                        print(f'Skip move is better than best move: {best_move.square} -> {best_move.value} with score {best_score} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+                        print(f'Skip move is better than best move: {best_move.square} -> {best_move.value} with score {best_score}')
                 else:
                     if taboo_score < best_score:
                         best_score = taboo_score
                         best_move = potential_taboo_moves[0]
-                        print(f'Skip move is better than best move: {best_move.square} -> {best_move.value} with score {best_score} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+                        print(f'Skip move is better than best move: {best_move.square} -> {best_move.value} with score {best_score}')
 
             # only propose a move when all moves of the current depth have been checked <-- this is a design choice
             self.propose_move(best_move)
