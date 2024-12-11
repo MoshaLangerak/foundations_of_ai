@@ -47,10 +47,19 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         return children
     
     def minimax(self, game_state: GameState, depth, alpha, beta, maximizingPlayer):
-        children = self.getChildren(game_state)
-        
-        if depth == 0 or not children:
+        print(f'Moves in game state: {[move.__str__() for move in game_state.moves]}')
+        print(f'Current value: {self.evaluate(game_state)}')
+
+        # set the boolean for game_finished to True if there are no empty squares left
+        game_finished = not any([game_state.board.squares[i] == 0 for i in range(game_state.board.N * game_state.board.N)])
+
+        if depth == 0 or game_finished:
             return self.evaluate(game_state)
+
+        children = self.getChildren(game_state)
+        if not children:
+            new_game_state = GameStateManager().add_no_move_to_game_state(game_state)
+            return self.minimax(new_game_state, depth-1, alpha, beta, not maximizingPlayer)
 
         if maximizingPlayer:
             maxEval = -float('inf')
@@ -79,8 +88,15 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         valid_entries = ValidEntryFinder(game_state).get_pos_entries()
         moves = [[(i, j), value] for (i, j) in valid_entries for value in valid_entries[(i, j)]]
 
+        print(f'Valid moves: {len(moves)}')
+        print(f'Valid moves: {moves}')
+
         # use the heuristic solver to get the solving and non-solving (taboo) moves
         solving_moves, potential_taboo_moves = HeuristicSolver(game_state).get_moves()
+
+        print(f'solving moves: {solving_moves}')
+        print(f'non-solving moves: {len(potential_taboo_moves)}')
+        print(f'non-solving moves: {potential_taboo_moves}')
 
         # remove the non-solving moves from the list of valid moves
         if potential_taboo_moves != []:
@@ -88,12 +104,18 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                 if move in moves:
                     moves.remove(move)
 
+        print(f'Valid moves after removing taboo moves: {len(moves)}')
+        print(f'Valid moves after removing taboo moves: {moves}')
+
         moves = [Move(square, value) for square, value in moves]
         
         # propose random move at the start of the game just in case depth 0 doesn't terminate
         self.propose_move(moves[len(moves)//2])
 
         current_stage = get_game_stage(len(moves))
+        print(f"Current game stage: {current_stage}")
+
+        print(f'Player {self.player_number} is maximizing: {is_maximizing}')
 
         # set the maximum depth for iterative deepening
         max_depth = 15
@@ -101,6 +123,7 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
         global_best_score = -float('inf') if is_maximizing else float('inf')
 
         for depth in range(0, max_depth + 1):
+            print(f'-------- Checking depth {depth} --------')
 
             best_score = -float('inf') if is_maximizing else float('inf')
             best_move = None
@@ -111,32 +134,40 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
             if global_best_move is not None:
                 new_game_state = GameStateManager().add_move_to_game_state(game_state, global_best_move)
                 global_best_score = self.minimax(new_game_state, depth, alpha, beta, is_maximizing)
+                print(f'Global best move {global_best_move.square} -> {global_best_move.value} has score {global_best_score} at depth {depth}')
 
             # then check all possible moves for the current depth
             for i, move in enumerate(moves):
+                print(f'Checking move {i}: {move.square} -> {move.value}')
                 new_game_state = GameStateManager().add_move_to_game_state(game_state, move)
                 score = self.minimax(new_game_state, depth, alpha, beta, is_maximizing)
+
+                print(f'Score for move {move.square} -> {move.value} is {score}, best score is {best_score}{" (inf/-inf expected)" if i == 0 else ""}')
 
                 if is_maximizing:
                     if score > best_score and not score == float('inf'):
                         best_score = score
                         best_move = move
+                        print(f'New best move: {best_move.square} -> {best_move.value} with score {best_score}')
                         
                         # if the score is better than the global best score (could be from a previous depth), update the global best move and propose it
                         if best_score > global_best_score:
                             global_best_score = best_score
                             global_best_move = best_move
                             self.propose_move(global_best_move)
+                            print(f'Move is also global best move, so proposed: {global_best_move.square} -> {global_best_move.value} with score {global_best_score}')
                 else:
                     if score < best_score and not score == float('-inf'):
                         best_score = score
                         best_move = move
+                        print(f'New best move: {best_move.square} -> {best_move.value} with score {best_score}')
                         
                         # if the score is better than the global best score (could be from a previous depth), update the global best move
                         if best_score < global_best_score:
                             global_best_score = best_score
                             global_best_move = best_move
                             self.propose_move(global_best_move)
+                            print(f'Move is also global best move, so proposed: {global_best_move.square} -> {global_best_move.value} with score {global_best_score}')
             
             if potential_taboo_moves != [] and (current_stage == 'middle' or current_stage == 'late'):
                 print(f'Checking taboo moves at depth {depth}')
@@ -148,15 +179,18 @@ class SudokuAI(competitive_sudoku.sudokuai.SudokuAI):
                     if taboo_score > best_score:
                         best_score = taboo_score
                         best_move = potential_taboo_moves[0]
+                        print(f'Skip move is better than best move: {best_move.square} -> {best_move.value} with score {best_score} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
                 else:
                     if taboo_score < best_score:
                         best_score = taboo_score
                         best_move = potential_taboo_moves[0]
+                        print(f'Skip move is better than best move: {best_move.square} -> {best_move.value} with score {best_score} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
 
             # only propose a move when all moves of the current depth have been checked <-- this is a design choice
             self.propose_move(best_move)
             global_best_move = best_move
             global_best_score = best_score
+            print(f'Best move proposed: {best_move.square} -> {best_move.value} with score {best_score}')
 
 
 def get_game_stage(n_moves) -> str:
